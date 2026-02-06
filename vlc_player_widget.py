@@ -353,9 +353,11 @@ class VLCPlayerWidget(QWidget):
     def set_position(self, position):
         """ Définit la position de lecture en fonction du slider. """
         if self.media is not None:
-            total_time = self.player.get_length() // 1000  # en secondes
-            new_time = position / 1000 * total_time
-            self.player.set_time(int(new_time * 1000))
+            
+            # décalage à gauche atténué mais toujours présent 
+            total_time = float(self.player.get_length())  # en secondes
+            new_time = (float(position) / 1000) * total_time
+            self.player.set_time(int(new_time))
 
     def on_value_changed(self):
         """ Change la position de la vidéo lorsqu'on modifie le timecode dans le QLineEdit. """
