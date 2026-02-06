@@ -1,0 +1,9 @@
+ARM VERSION :
+python3 -m PyInstaller main.py --name "SLV (ARM - macOS 13+) (dev version)" --windowed --icon=icon/icon3.icns --collect-all moviepy --collect-all proglog --hidden-import=cv2 --hidden-import=cv2.data --add-binary "/Applications/VLC.app/Contents/MacOS/lib/libvlc.dylib:." --add-binary "/Applications/VLC.app/Contents/MacOS/lib/libvlccore.dylib:." --add-binary "/Users/cmauri12/Library/Python/3.13/lib/python/site-packages/imageio_ffmpeg/binaries/ffmpeg-macos-aarch64-v7.1:." --noconfirm
+
+INTEL VERSION :
+python3 -m PyInstaller main.py   --name "SLV (INTEL - macOS 13+) (dev version)"   --windowed   --icon=icon/icon3.icns   --collect-all moviepy   --collect-all proglog   --collect-all skimage   --hidden-import=cv2   --hidden-import=cv2.data   --hidden-import=skimage   --hidden-import=pptx   --add-binary "/Applications/VLC.app/Contents/MacOS/lib/libvlc.dylib:."   --add-binary "/Applications/VLC.app/Contents/MacOS/lib/libvlccore.dylib:."   --noconfirm
+
+
+WINDOWS VERSION :
+pyinstaller main.py --name "SLV (Windows) (dev version)" --onefile --windowed --icon=icon/icon3.ico --collect-all moviepy --collect-all proglog --hidden-import=cv2 --hidden-import=cv2.data --hidden-import=skimage --noconfirm

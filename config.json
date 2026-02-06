@@ -1,0 +1,11 @@
+{
+    "format_capture": false,
+    "post_traitement": true,
+    "gamma": 1.06,
+    "format_export_text": [
+        false,
+        false,
+        false,
+        true
+    ]
+}
