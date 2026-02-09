@@ -1,9 +1,11 @@
 from PySide6.QtWidgets import QSlider, QStyle
-from PySide6.QtCore import Qt
+from PySide6.QtCore import Qt, Signal
 
 class CustomSlider(QSlider):
 
-    scribbling = False  # Si l'user/clique glisse la souris
+    scribbling = False  # Si l'user clique et glisse la souris
+    slider_mouse_clicked = Signal()
+    slider_mouse_released = Signal()  # Signal quand le clic est relâché
 
     def follow_mouse_click(self, event):
         self.setFocusPolicy(Qt.NoFocus)
@@ -19,6 +21,7 @@ class CustomSlider(QSlider):
     def mousePressEvent(self, event):
         self.follow_mouse_click(event)
         self.scribbling = True
+        self.slider_mouse_clicked.emit() # Mettre en pause la vidéo tant que le slider est bougé
 
         # Provoque une erreur en appelant la méthode originale qui décale de nouveau le slider, qui se décale donc indéfiniment
         # super().mousePressEvent(event)  # Appelle l'événement original
@@ -30,4 +33,5 @@ class CustomSlider(QSlider):
 
     def mouseReleaseEvent(self, event):
         self.scribbling = False
+        self.slider_mouse_released.emit()
 
