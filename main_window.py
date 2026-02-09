@@ -259,7 +259,7 @@ class VLCMainWindow(QMainWindow):
             if(self.sync_mode):
                 self.sync_button_use()
             else:
-                self.vlc_widget.stop_video()
+                self.vlc_widget.eject_video()
 
             if os.name == "nt":  # Windows
                 default_dir = "C:/"
@@ -480,7 +480,7 @@ class VLCMainWindow(QMainWindow):
                 self.create_sync_window()
                 self.sync_widget.configure()
                 if(self.sync_widget.dialog_result):
-                    self.vlc_widget.stop_video()
+                    self.vlc_widget.eject_video()
                     self.add_quit_button()                    
                 else:
                     self.sync_mode=False

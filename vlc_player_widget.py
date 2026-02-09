@@ -106,9 +106,14 @@ class VLCPlayerWidget(QWidget):
         self.play_pause_button.clicked.connect(self.toggle_play_pause)
         self.button_layout.addWidget(self.play_pause_button)
 
-        self.stop_button = NoFocusPushButton("⏹ Arrêter", self)
+        self.stop_button = NoFocusPushButton("⏹️ Stop", self)
         self.stop_button.clicked.connect(self.stop_video)
         self.button_layout.addWidget(self.stop_button)
+
+        self.eject_button = NoFocusPushButton("⏏️ Éjecter", self)
+        self.eject_button.clicked.connect(self.eject_video)
+        self.button_layout.addWidget(self.eject_button)
+
 
         parent_layout.addLayout(self.button_layout)
 
@@ -239,18 +244,33 @@ class VLCPlayerWidget(QWidget):
         #self.timer.stop()
 
     def stop_video(self):
+        """ Remet la vidéo à 00:00:00 et pause la lecture. """
+        self.restart_video()
+        self.pause_video()
+
+    def eject_video(self):
         """ Arrête et décharge la vidéo. """
+
+        self.timer.stop()
+        
+        if self.player.is_playing():
+            self.player.set_pause(1)
+
         self.player.stop()
         self.media = None
+        self.path_of_media = None
+
         if self.ac : 
             self.play_pause_button.setText("⏯️ Lire")
-        self.timer.stop()
+        
         self.progress_slider.setValue(0)
         self.progress_slider.setEnabled(False)
+
         self.time_label.setText("00:00:00 / 00:00:00")
-        self.time_label.setStyleSheet("color: white;")
+        self.time_label.setStyleSheet("color: black;")
 
         self.disable_segmentation()
+
         self.enable_load.emit(False)
 
     def restart_video(self):

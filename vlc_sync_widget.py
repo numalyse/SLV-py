@@ -151,9 +151,13 @@ class SyncWidget(QWidget):
         self.play_pause_shortcut = QShortcut(QKeySequence("Space"), self)
         self.play_pause_shortcut.activated.connect(self.toggle_play_pause)
 
-        self.stop_button = NoFocusPushButton("⏹ Arrêter", self)
-        self.stop_button.clicked.connect(self.exit_video_players)
+        self.stop_button = NoFocusPushButton("⏹️ Stop", self)
+        self.stop_button.clicked.connect(self.stop_video_players)
         button_layout.addWidget(self.stop_button)
+
+        self.eject_button = NoFocusPushButton("⏏️ Éjecter", self)
+        self.eject_button.clicked.connect(self.exit_video_players)
+        button_layout.addWidget(self.eject_button)
 
         self.full_screen_button = NoFocusPushButton("◻",self)
         self.full_screen_button.setFixedSize(30, 30)
@@ -191,10 +195,16 @@ class SyncWidget(QWidget):
             self.play_pause_button.setText("⏯️ Pause")
             self.play=True            
 
+    def stop_video_players(self):
+        for i in self.player_widgets:
+            i.stop_video()
+        self.play_pause_button.setText("⏯️ Lire")
+        self.play=False
+        self.enable_segmentation.emit(False)
 
     def exit_video_players(self):
         for i in self.player_widgets:
-            i.stop_video()
+            i.eject_video()
         self.play_pause_button.setText("⏯️ Lire")
         self.enable_segmentation.emit(False)
 
