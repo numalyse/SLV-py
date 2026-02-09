@@ -173,6 +173,9 @@ class SideMenuWidget(QDockWidget):
         current_time = self.vlc_widget.player.get_time()
         self.max_time = self.vlc_widget.player.get_length()
 
+        if self.display is None:
+            return
+
         for seg in self.display.stock_button:
             if round(seg["time"]) <= round(current_time) < round(seg["end"]):
                 seg["rect"].setBrush(QBrush(QColor("red")))
