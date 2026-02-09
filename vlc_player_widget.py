@@ -235,9 +235,11 @@ class VLCPlayerWidget(QWidget):
 
     def load_video(self,file_path,suppr_seg=True):
         if file_path:
+            duration_ms = None
             try:
                 video = VideoFileClip(file_path)
                 self.fps = video.fps
+                duration_ms = int(video.duration * 1000)
             except Exception as e:
                 #print(f"Erreur lors du chargement de la vidéo : {e}")
                 self.fps = 25
@@ -247,11 +249,13 @@ class VLCPlayerWidget(QWidget):
             self.media = self.instance.media_new(file_path)
             self.player.set_media(self.media)
             self.player.audio_set_mute(self.mute)
+
+            if duration_ms is not None:
+                self.progress_slider.setRange(0, duration_ms)
             
             if(self.begin):
                 self.player.play()
                 self.play_pause_button.setText("⏯️ Pause")
-                self.progress_slider.setRange(0, video.duration*1000)
 
             self.progress_slider.setEnabled(True)
             self.time_label.setStyleSheet("color: red;")            

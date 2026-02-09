@@ -473,6 +473,7 @@ class VLCMainWindow(QMainWindow):
 
                 self.recreate_window()
             else:
+
                 self.remove_quit_button()
                 self.capture_video_button.setEnabled(False)
                 self.sync_mode = True
@@ -481,8 +482,14 @@ class VLCMainWindow(QMainWindow):
                 self.create_sync_window()
                 self.sync_widget.configure()
                 if(self.sync_widget.dialog_result):
+
+                    current_video = self.vlc_widget.path_of_media # on récupère la vidéo actuellement chargée dans le lecteur
+                    for player in self.sync_widget.player_widgets:
+                        player.load_video(current_video, False)
+
                     self.vlc_widget.eject_video()
-                    self.add_quit_button()                    
+                    self.add_quit_button() 
+                                       
                 else:
                     self.sync_mode=False
 

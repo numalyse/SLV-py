@@ -75,6 +75,7 @@ CMakeLists.txt.user*
 # Directories
 # -----------
 build/
+.vscode/
 dist/
 __pycache__/
 
