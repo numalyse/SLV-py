@@ -30,6 +30,7 @@ class VLCPlayerWidget(QWidget):
 
     enable_load = Signal(bool)
     slider_was_playing = False
+    previous_slider_pos = 0
 
     def __init__(self,add_controls=False,add_window_time=True,m=True,c=True):
         super().__init__()
@@ -194,6 +195,7 @@ class VLCPlayerWidget(QWidget):
         """ Joue ou met en pause la vidéo, ou demande un fichier si aucune vidéo chargée. """
         if self.media is None:
             self.load_file()
+            self.progress_slider.setRange(0, self.player.get_length())
         elif self.player.is_playing():
             self.pause_video()
         else:
@@ -248,7 +250,9 @@ class VLCPlayerWidget(QWidget):
             
             if(self.begin):
                 self.player.play()
-                self.play_pause_button.setText("⏯️ Pause")     
+                self.play_pause_button.setText("⏯️ Pause")
+                self.progress_slider.setRange(0, video.duration*1000)
+
             self.progress_slider.setEnabled(True)
             self.time_label.setStyleSheet("color: red;")            
             self.active_segmentation()
@@ -394,7 +398,7 @@ class VLCPlayerWidget(QWidget):
         total_time = self.player.get_length()
 
         if current_time >= 0 and total_time > 0:
-            self.progress_slider.setValue(int((current_time / total_time) * 1000))
+            self.progress_slider.setValue(int((current_time / total_time) * total_time))
             current_time_str = self.time_manager.m_to_hmsf(current_time).replace(",",":")
             #self.line_edit.setText(current_time_str)
             total_time_str = self.time_manager.m_to_hmsf(total_time).replace(",",":")
@@ -403,21 +407,19 @@ class VLCPlayerWidget(QWidget):
         if self.player.get_state()==6 :
             self.restart_video()
 
-    # Lorsque le slider est cliqué ou déplacé
-    def slider_set_position(self, position):
-        self.slider_was_playing = self.player.is_playing()
-
-        self.pause_video()
-        self.set_position(position)
-
     def set_position(self, position):
         """ Définit la position de lecture en fonction du slider. """
+        position = position / self.player.get_length()
+        if position == self.previous_slider_pos:
+            return
+
         if self.media is not None:
             
             # décalage à gauche atténué mais toujours présent 
             total_time = float(self.player.get_length())  # en secondes
-            new_time = (float(position) / 1000) * total_time
+            new_time = (float(position)) * total_time
             self.player.set_time(int(new_time))
+            self.previous_slider_pos = position
 
     def on_value_changed(self):
         """ Change la position de la vidéo lorsqu'on modifie le timecode dans le QLineEdit. """
