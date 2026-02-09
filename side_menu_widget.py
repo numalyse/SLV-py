@@ -174,7 +174,7 @@ class SideMenuWidget(QDockWidget):
         self.max_time = self.vlc_widget.player.get_length()
 
         for seg in self.display.stock_button:
-            if seg["time"] <= current_time < seg["end"]:
+            if round(seg["time"]) <= round(current_time) < round(seg["end"]):
                 seg["rect"].setBrush(QBrush(QColor("red")))
                 self.set_position(seg["id"],go=False)
             else:
@@ -450,7 +450,7 @@ class SideMenuWidget(QDockWidget):
                 self.display.select_plan(i)
                 break
         if go:
-            self.vlc_widget.set_position_timecode(int(time))
+            self.vlc_widget.set_position_timecode(time)
 
     def seg_action(self):
         self.seg_button.setText("Calcul Segmentation en cours ⌛")
