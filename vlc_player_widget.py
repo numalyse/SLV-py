@@ -12,7 +12,7 @@ import time
 import ffmpeg
 from datetime import datetime
 from PySide6.QtWidgets import QWidget, QVBoxLayout, QHBoxLayout, QPushButton, QFrame, QFileDialog, QSlider, QLabel, QLineEdit
-from PySide6.QtCore import Qt, QTimer, Signal, QMetaObject
+from PySide6.QtCore import Qt, QTimer, Signal, QMetaObject, QObject
 from PySide6.QtGui import QKeySequence, QShortcut
 
 
@@ -29,6 +29,7 @@ class VLCPlayerWidget(QWidget):
     enable_recording = Signal(bool)
 
     enable_load = Signal(bool)
+    slider_was_playing = False
 
     def __init__(self,add_controls=False,add_window_time=True,m=True,c=True):
         super().__init__()
@@ -160,6 +161,8 @@ class VLCPlayerWidget(QWidget):
         self.progress_slider = CustomSlider(Qt.Horizontal, self)
         self.progress_slider.setRange(0, 1000)
         self.progress_slider.sliderMoved.connect(self.set_position)
+        self.progress_slider.slider_mouse_clicked.connect(self.on_slider_clicked)
+        self.progress_slider.slider_mouse_released.connect(self.on_slider_released)
         self.progress_slider.setEnabled(False)
         parent_layout.addWidget(self.progress_slider)
 
@@ -237,6 +240,14 @@ class VLCPlayerWidget(QWidget):
         self.player.set_pause(1)
         self.play_pause_button.setText("⏯️ Lire")
         #self.timer.stop()
+
+    def on_slider_clicked(self):
+        self.slider_was_playing = self.player.is_playing()
+        self.pause_video()
+    
+    def on_slider_released(self):
+        if self.slider_was_playing:
+            self.play_video()
 
     def stop_video(self):
         """ Arrête et décharge la vidéo. """
@@ -349,6 +360,12 @@ class VLCPlayerWidget(QWidget):
         if self.player.get_state()==6 :
             self.restart_video()
 
+    # Lorsque le slider est cliqué ou déplacé
+    def slider_set_position(self, position):
+        self.slider_was_playing = self.player.is_playing()
+
+        self.pause_video()
+        self.set_position(position)
 
     def set_position(self, position):
         """ Définit la position de lecture en fonction du slider. """
