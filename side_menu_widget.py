@@ -317,19 +317,21 @@ class SideMenuWidget(QDockWidget):
         return time, end, frame1, frame2
 
     def delate_button_prec(self, button):
-        time, end, frame1, frame2 = self.delate_button(button)
+        time, end, frame1, frame2 = self.delate_button(button) 
+
         for btn_data in self.display.stock_button:
-            if btn_data["end"] == time:
+            if btn_data["frame2"] == frame1-1: # vérifie si la fin d'une séquence correspond au frame juste avant le début de la séquence supprimée
                 btn_data["end"] = end
                 self.change_rect(btn_data["rect"],btn_data["time"],end)
                 btn_data["frame2"] = frame2
                 self.display.change_label_time(btn_data["label"], btn_data["time"], btn_data["end"])
+
         self.recalc_all_buttons()
 
     def delate_button_suiv(self, button):
         time, end, frame1, frame2 = self.delate_button(button)
         for btn_data in self.display.stock_button:
-            if btn_data["time"] == end:
+            if btn_data["frame1"] == frame2+1: # vérifie si le début d'une séquence correspond au frame juste après la fin de la séquence supprimée
                 btn_data["time"] = time
                 self.change_rect(btn_data["rect"],time,btn_data["end"])
                 btn_data["frame1"] = frame1

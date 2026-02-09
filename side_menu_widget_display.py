@@ -131,9 +131,10 @@ class SideMenuWidgetDisplay(QDockWidget):
         if end == 0:
             time_label = QLabel(f"Début : " + self.time_manager.m_to_hmsf(time), self)
         else:
-            time_label = QLabel(f"Début : {self.time_manager.m_to_hmsf(time)} / Fin : {self.time_manager.m_to_hmsf(end)}", self)
+            duration = self.time_manager.m_to_hmsf(end + 1  - time)
+            time_label = QLabel(f"Début : {self.time_manager.m_to_hmsf(time)} / Fin : {self.time_manager.m_to_hmsf(end)} \nDurée : {duration}", self)
 
-        time_label.setFixedHeight(30)
+        time_label.setFixedHeight(50)
 
         frame_layout.addWidget(button)
         frame_layout.addWidget(time_label)
@@ -172,7 +173,7 @@ class SideMenuWidgetDisplay(QDockWidget):
         rename_action.triggered.connect(lambda: self.rename_button(button))
         menu.addAction(rename_action)
 
-        mod_action = QAction("Modifier TimeCode", self)
+        mod_action = QAction("Modifier Timecode", self)
         mod_action.triggered.connect(lambda: self.modify_time(button))
         menu.addAction(mod_action)
 
@@ -189,12 +190,17 @@ class SideMenuWidgetDisplay(QDockWidget):
             delete_action.triggered.connect(lambda: self.parent.delate_button_prec(button))
             menu.addAction(delete_action)
 
-        if (end<self.max_time):
+        # Vérifie si la séquence n'est pas la dernière et que sa fin n'est pas à la fin de la vidéo pour proposer l'option de concaténer avec le suivant
+        if (end<self.max_time  and not self.is_last_sequence(button)):
             delete_action2 = QAction("Supprimer et concaténer avec le suivant", self)
             delete_action2.triggered.connect(lambda: self.parent.delate_button_suiv(button))
             menu.addAction(delete_action2)
 
         menu.exec_(button.mapToGlobal(pos))
+
+    # Retoune True si le bouton correspond à la dernière séquence, sinon False
+    def is_last_sequence(self, button):
+        return button == self.stock_button[-1]["button"] if self.stock_button else False
 
     #fonction 1
     def rename_button(self, button):
@@ -207,7 +213,6 @@ class SideMenuWidgetDisplay(QDockWidget):
                 if btn_data["button"] == button:
                     btn_data["button"].setText(new_name)
         self.parent.emit_change()
-
 
 
     #fonction 3
