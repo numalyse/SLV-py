@@ -269,19 +269,38 @@ class VLCPlayerWidget(QWidget):
         self.restart_video()
         self.pause_video()
 
+    def empty_video_frame(self):
+        """ Forcer le nettoyage de la dernière frame en détachant puis réattachant la sortie vidéo au player """
+        if sys.platform.startswith("linux"):
+            self.player.set_xwindow(0)
+            self.player.set_xwindow(self.video_frame.winId())
+        elif sys.platform == "win32":
+            self.player.set_hwnd(0)
+            self.player.set_hwnd(self.video_frame.winId())
+        elif sys.platform == "darwin":
+            self.player.set_nsobject(0)
+            self.player.set_nsobject(self.video_frame.winId())
+
+    # L'éjection est différée pour éviter les crashs liés à VLC, par défaut, pas différé (0ms)
     def eject_video(self):
         """ Arrête et décharge la vidéo. """
+
+        if self.media is None or self.player is None: # Si déjà éjecté ou pas de vidéo chargée, on ne fait rien
+            return
 
         self.timer.stop()
         
         if self.player.is_playing():
             self.player.set_pause(1)
 
-        self.player.stop()
-        self.media = None
+        # Détacher le média sans appeler stop() sinon crash VLC, mais ça laisse la dernière frame affichée, d'où le nettoyage visuel ensuite
+        self.player.set_media(None)
         self.path_of_media = None
+        self.media = None
 
-        if self.ac : 
+        self.empty_video_frame()
+
+        if self.ac: 
             self.play_pause_button.setText("⏯️ Lire")
         
         self.progress_slider.setValue(0)
@@ -291,9 +310,7 @@ class VLCPlayerWidget(QWidget):
         self.time_label.setStyleSheet("color: black;")
 
         self.disable_segmentation()
-
         self.update_video_name()
-
         self.enable_load.emit(False)
 
     def restart_video(self):

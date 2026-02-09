@@ -258,8 +258,6 @@ class VLCMainWindow(QMainWindow):
         if(self.auto_save()):
             if(self.sync_mode):
                 self.sync_button_use()
-            else:
-                self.vlc_widget.eject_video()
 
             if os.name == "nt":  # Windows
                 default_dir = "C:/"
@@ -267,6 +265,9 @@ class VLCMainWindow(QMainWindow):
                 default_dir = "/"
             project_path = QFileDialog.getExistingDirectory(self, "Sélectionner le dossier du projet à ouvrir",default_dir)
             if project_path :
+                
+                self.vlc_widget.eject_video() # ejecte la vidéo seulement quand on a validé l'ouerture du projet
+
                 #self.recreate_window()
 
                 self.side_menu=SideMenuWidget(self.vlc_widget, self,start=False)
