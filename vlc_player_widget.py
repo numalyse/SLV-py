@@ -57,6 +57,15 @@ class VLCPlayerWidget(QWidget):
         self.video_frame.setStyleSheet("background-color: black;")
         main_layout.addWidget(self.video_frame)
 
+        # label pour afficher le nom de la vidéo
+        self.video_name_label = QLabel("", self)
+        self.video_name_label.setAlignment(Qt.AlignCenter)
+        self.video_name_label.setFixedHeight(10)
+        
+        self.update_video_name() # à la création va permettre de cacher le label tant qu'aucune vidéo n'est chargée
+        main_layout.addWidget(self.video_frame)
+        main_layout.addWidget(self.video_name_label)
+
         if add_window_time:
             self.create_window_time(main_layout)
         if add_controls : 
@@ -91,6 +100,16 @@ class VLCPlayerWidget(QWidget):
         self.toggle_layout_visibility(self.button_layout,visible)
         self.toggle_layout_visibility(self.time_layout,visible)
         self.progress_slider.setVisible(visible)
+
+    # met a jour le nom de la vidéo affiché dans le label en fonction du fichier chargé et hide le label si aucun fichier chargé
+    def update_video_name(self):
+        if self.path_of_media:
+            file_name = os.path.basename(self.path_of_media)
+            self.video_name_label.setText(file_name)
+            self.video_name_label.setVisible(True)
+        else:
+            self.video_name_label.setText("")
+            self.video_name_label.setVisible(False)
 
     def toggle_layout_visibility(self, layout, visible):
         for i in range(layout.count()):
@@ -233,6 +252,8 @@ class VLCPlayerWidget(QWidget):
             if (suppr_seg):
                 self.enable_load.emit(True)
             self.timer.start()  
+
+            self.update_video_name()
     
     def play_video(self):
         self.player.play()
@@ -270,6 +291,8 @@ class VLCPlayerWidget(QWidget):
         self.time_label.setStyleSheet("color: black;")
 
         self.disable_segmentation()
+
+        self.update_video_name()
 
         self.enable_load.emit(False)
 
