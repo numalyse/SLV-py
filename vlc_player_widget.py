@@ -372,11 +372,14 @@ class VLCPlayerWidget(QWidget):
 
         self.set_position_timecode(new_time)
     
-
+    
     def set_position_timecode(self,new_time):
+        # Utilisation de set_position pour une meilleure précision
+        # Besoin d'avoir un temps normalisé entre 0 et 1 pour set_position, d'où la division par total_time
         total_time = self.player.get_length()
         if total_time > 0 and 0 <= new_time <= total_time:
-            self.player.set_time(new_time)
+            normalized_time = new_time / total_time
+            self.player.set_position(normalized_time) 
             self.update_ui()
 
     def active_segmentation(self):
