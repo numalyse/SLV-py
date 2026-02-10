@@ -376,13 +376,13 @@ class SideMenuWidget(QDockWidget):
     def add_action(self):
         """ Ouvre une boîte de dialogue pour entrer un nom et un temps avec un slider. """
         dialog = QDialog(self)
-        dialog.setWindowTitle("Ajouter une séquence")
+        dialog.setWindowTitle("Ajouter un plan")
         dialog.setModal(True)
 
         layout = QVBoxLayout(dialog)
 
         # Zone de texte pour le nom
-        name_label = QLabel("Nom de la séquence :", dialog)
+        name_label = QLabel("Nom du plan :", dialog)
         layout.addWidget(name_label)
         name_input = QLineEdit(dialog)
         layout.addWidget(name_input)
