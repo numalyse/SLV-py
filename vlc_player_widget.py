@@ -28,13 +28,15 @@ class VLCPlayerWidget(QWidget):
     enable_segmentation = Signal(bool)
     enable_recording = Signal(bool)
 
+    full_screen_requested = Signal(object)
+
     enable_load = Signal(bool)
     slider_was_playing = False
     previous_slider_pos = 0
 
-    def __init__(self,add_controls=False,add_window_time=True,m=True,c=True):
-        super().__init__()
-
+    def __init__(self, parent=None,add_controls=False,add_window_time=True,m=True,c=True):
+        super().__init__(parent)
+        self.parent_element = parent
         self.instance = vlc.Instance("--quiet")
 
         #print(self.instance)
@@ -98,7 +100,10 @@ class VLCPlayerWidget(QWidget):
 
         self.fps=25
 
+        self.full_screen=False
+
     def display(self,visible):
+        self.video_name_label.setVisible(visible)
         self.toggle_layout_visibility(self.button_layout,visible)
         self.toggle_layout_visibility(self.time_layout,visible)
         self.progress_slider.setVisible(visible)
@@ -135,6 +140,9 @@ class VLCPlayerWidget(QWidget):
         self.eject_button.clicked.connect(self.eject_video)
         self.button_layout.addWidget(self.eject_button)
 
+        self.full_screen_button = NoFocusPushButton("⛶ Plein écran", self)
+        self.full_screen_button.clicked.connect(self.full_screen_action)
+        self.button_layout.addWidget(self.full_screen_button)
 
         parent_layout.addLayout(self.button_layout)
 
@@ -222,6 +230,10 @@ class VLCPlayerWidget(QWidget):
 
     def move_front(self):
         self.player.set_time(self.player.get_time()+5000)
+
+    def full_screen_action(self):
+        # Demande le full screen
+        self.full_screen_requested.emit(self)
 
 
     def load_file(self,auto=True):
@@ -506,6 +518,7 @@ class VLCPlayerWidget(QWidget):
 
         if not os.path.exists(self.capture_video_dir):
             os.makedirs(self.capture_video_dir)
+
         file_name = os.path.splitext(os.path.basename(self.path_of_media))[0]
         capture_path = os.path.join(self.capture_video_dir, f"{file_name}_{self.time_manager.timecodename(self.start)}_{self.time_manager.timecodename(end_acc)}.mp4")
         self.extract_segment_with_ffmpeg(self.path_of_media, self.start//1000, duration, capture_path)

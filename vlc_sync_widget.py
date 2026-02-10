@@ -19,6 +19,7 @@ from vlc_player_widget import VLCPlayerWidget
 from message_popup import MessagePopUp
 from mergevideo_thread import MergeVideoThread
 from no_focus_push_button import NoFocusPushButton
+from theme_utils import apply_dark_mode
 
 class SyncWidget(QWidget):
     """ Widget permettant la lecture synchronisée de vidéos. """
@@ -39,6 +40,9 @@ class SyncWidget(QWidget):
         self.dialog_result = False
 
         self.full_screen=False
+
+        self.full_screen_one = False
+        self.full_screen_player = None
 
         self.is_recording=False
 
@@ -112,9 +116,10 @@ class SyncWidget(QWidget):
         rows, cols = (1, 2) if self.num_windows == 2 else (2, 2)
 
         for i in range(self.num_windows):
-            player = VLCPlayerWidget(True,True,True,False)
+            player = VLCPlayerWidget(self, True,True,True,False)
             player.begin=False
             player.enable_load.connect(self.cpt_load_action)
+            player.full_screen_requested.connect(self.full_screen_one_player) # si on recoit le signal de plein écran d'un player, on affiche que ce player et on cache les autres
             self.player_widgets.append(player)
             grid_layout.addWidget(player, i // cols, i % cols)
         
@@ -159,13 +164,9 @@ class SyncWidget(QWidget):
         self.eject_button.clicked.connect(self.exit_video_players)
         button_layout.addWidget(self.eject_button)
 
-        self.full_screen_button = NoFocusPushButton("◻",self)
-        self.full_screen_button.setFixedSize(30, 30)
+        self.full_screen_button = NoFocusPushButton("⛶ Plein écran",self)
         self.full_screen_button.clicked.connect(self.full_screen_action)
         button_layout.addWidget(self.full_screen_button)
-
-        self.full_screen_shortcut = QShortcut(QKeySequence("F"), self)
-        self.full_screen_shortcut.activated.connect(self.full_screen_action)
 
         self.layout.addLayout(button_layout)
 
@@ -176,9 +177,49 @@ class SyncWidget(QWidget):
         self.main_window.display(self.full_screen)
         self.play_pause_button.setVisible(self.full_screen)
         self.stop_button.setVisible(self.full_screen)
+        self.eject_button.setVisible(self.full_screen)
         self.full_screen_button.setVisible(self.full_screen)
 
+        # Appliquer le mode sombre en plein écran
+        if not self.full_screen:
+            apply_dark_mode(self.main_window, True)
+        else:
+            apply_dark_mode(self.main_window, False)
+
         self.full_screen=not self.full_screen
+
+    def full_screen_one_player(self, player):
+        """ Gère l'UI quand on clique sur "plein écran" d'un des player. Cache les autres et affiche le plein écran du player sélectionné """
+
+        # Si on est pas en plein écran d'un seul player, on affiche que le player sélectionné et on cache les autres + theme sombre
+        if not self.full_screen_one:
+            for i in self.player_widgets:
+                if i != player:
+                    i.setVisible(False)
+                else:
+                    i.display(False)
+                    i.full_screen_button.setVisible(True)
+
+            self.full_screen_one = True
+            self.full_screen_player = player
+            apply_dark_mode(self.main_window, True)
+
+        # Sinon, on affiche tous les players et on desactive le theme sombre
+        else:
+            for i in self.player_widgets:
+                i.setVisible(True)
+                i.display(True)
+                
+            self.full_screen_one = False
+            self.full_screen_player = None
+            apply_dark_mode(self.main_window, False)
+
+        # Affiche les controles si on est pas en plein écran d'un seul player et inversement
+        self.main_window.display( not self.full_screen_one)
+        self.play_pause_button.setVisible(not self.full_screen_one)
+        self.stop_button.setVisible(not self.full_screen_one)
+        self.eject_button.setVisible(not self.full_screen_one)
+        self.full_screen_button.setVisible(not self.full_screen_one)
 
     def toggle_play_pause(self):
         cond=True

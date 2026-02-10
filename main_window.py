@@ -15,6 +15,7 @@ from preference_manager import PreferenceManager
 from no_focus_push_button import NoFocusPushButton
 from color_img import ColorImage
 from pathlib import Path
+from theme_utils import apply_dark_mode
 
 import os
 import json
@@ -36,8 +37,9 @@ class VLCMainWindow(QMainWindow):
         #self.showFullScreen() #enlève la barre menu etc
 
         # Initialisation du widget principal
-        self.vlc_widget = VLCPlayerWidget(True)
+        self.vlc_widget = VLCPlayerWidget(self, True)
         self.vlc_widget.enable_load.connect(self.media_load_action)
+        self.vlc_widget.full_screen_requested.connect(self.handle_player_full_screen_request)
         self.setCentralWidget(self.vlc_widget)
 
         self.sync_widget = SyncWidget(self)
@@ -234,6 +236,25 @@ class VLCMainWindow(QMainWindow):
         self.echap_aug_mode = QShortcut(QKeySequence(Qt.Key_Escape), self)
         self.echap_aug_mode.activated.connect(self.echap_button_use)
 
+        self.full_screen_shortcut = QShortcut(QKeySequence("F"), self)
+        self.full_screen_shortcut.activated.connect(self.full_screen_action)
+
+
+    def full_screen_action(self):
+        if(self.sync_mode):
+            self.sync_widget.full_screen_action()
+        else:
+            self.vlc_widget.full_screen_action()
+
+    def handle_player_full_screen_request(self, player):
+        self.display(player.full_screen)
+
+        if self.side_menu is not None:
+            self.side_menu.display.setVisible(player.full_screen)
+
+        player.display(player.full_screen)
+        player.full_screen = not player.full_screen
+        apply_dark_mode(self, player.full_screen)
 
     #gestion du projet 
     def save_action(self):
@@ -445,8 +466,9 @@ class VLCMainWindow(QMainWindow):
 
     #quand on revient en mode classique
     def recreate_window(self):
-        self.vlc_widget = VLCPlayerWidget(True)
+        self.vlc_widget = VLCPlayerWidget(self, True)
         self.vlc_widget.enable_load.connect(self.media_load_action)
+        self.vlc_widget.full_screen_requested.connect(self.handle_player_full_screen_request)
         self.setCentralWidget(self.vlc_widget)
         self.vlc_widget.enable_segmentation.connect(self.seg_mode_action.setEnabled)
         self.vlc_widget.enable_segmentation.connect(self.capture_button.setEnabled)
