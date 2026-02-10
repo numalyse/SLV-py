@@ -181,7 +181,7 @@ class SideMenuWidgetDisplay(QDockWidget):
         add_note_action.triggered.connect(lambda: self.add_note_menu(button))
         menu.addAction(add_note_action)
 
-        extract_action = QAction("Extraire la séquence")
+        extract_action = QAction("Extraire le plan")
         extract_action.triggered.connect(lambda: self.extract_action(button))
         menu.addAction(extract_action)
 

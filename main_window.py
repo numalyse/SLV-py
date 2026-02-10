@@ -1,5 +1,5 @@
 from PySide6.QtWidgets import QDockWidget, QMainWindow, QToolBar, QWidget, QPushButton, QFileDialog, QMessageBox, QDialog, QVBoxLayout, QLabel, QLineEdit,QMenu, QHBoxLayout, QButtonGroup, QRadioButton, QToolButton, QSlider
-from PySide6.QtGui import QAction, QKeySequence, QShortcut, QActionGroup, QImage, QPixmap
+from PySide6.QtGui import QAction, QKeySequence, QShortcut, QActionGroup, QImage, QPixmap, QPalette
 from PySide6.QtCore import Qt, QTimer, Signal
 
 from vlc_player_widget import VLCPlayerWidget
@@ -505,25 +505,36 @@ class VLCMainWindow(QMainWindow):
 
                 self.sync_widget.exit_video_players()
 
+                self.capture_button.setEnabled(False)
+                self.subtitle_button.setEnabled(False)
+                self.capture_video_button.setEnabled(False)
+
                 self.sync_mode_button.setText("Lecture Synchronisée")
                 self.recreate_window()
             else:
+                
                 self.sync_mode_button.setText("Quitter la Lecture Synchronisée")
                 self.remove_quit_button()
                 self.capture_video_button.setEnabled(False)
                 self.sync_mode = True
 
                 self.sync_widget = SyncWidget(self)
-                self.create_sync_window()
+
                 self.sync_widget.configure()
+
                 if(self.sync_widget.dialog_result):
-
                     current_video = self.vlc_widget.path_of_media # on récupère la vidéo actuellement chargée dans le lecteur
-                    for player in self.sync_widget.player_widgets: # on la charge dans tous les players synchronisés
-                        player.load_video(current_video, False)
 
-                    self.vlc_widget.eject_video()
-                    self.add_quit_button() 
+                    if(current_video is not None and current_video != ''): # si il y a une vidéo chargée, on la charge dans les players synchronisés et on active les boutons
+                        for player in self.sync_widget.player_widgets: # on la charge dans tous les players synchronisés
+                            player.load_video(current_video, False)
+
+                        self.vlc_widget.eject_video()
+                        self.capture_button.setEnabled(True)
+                        self.subtitle_button.setEnabled(True)
+                        self.capture_video_button.setEnabled(True)
+
+                    self.add_quit_button()
                                        
                 else:
                     self.sync_mode=False
@@ -536,34 +547,25 @@ class VLCMainWindow(QMainWindow):
         self.sync_widget.enable_recording.connect(self.update_capture_video_button)
 
     def add_quit_button(self,sync=True):
-        self.quit_action = QAction("Quitter", self)
+        self.quit_button = NoFocusPushButton("Quitter", self)
+        self.quit_button.setEnabled(True)
         if sync:
-            self.quit_action.triggered.connect(self.sync_button_use)
+            self.quit_button.clicked.connect(self.sync_button_use)
         else:
-            self.quit_action.triggered.connect(self.seg_button_use)
+            self.quit_button.clicked.connect(self.seg_button_use)
 
-        # Créer un QToolButton et lui associer l'action
-        self.quit_button = QToolButton()
-        self.quit_button.setDefaultAction(self.quit_action)
-        
-        # Appliquer une feuille de style pour changer la couleur du texte en rouge
-        self.quit_button.setStyleSheet("QToolButton { color: red; }")
+        # Palette pour rendre le texte du bouton rouge
+        palette = self.quit_button.palette()
+        palette.setColor(QPalette.ButtonText, Qt.red)
+        self.quit_button.setPalette(palette)
         
         # Ajouter le bouton personnalisé à la barre d'outils
         self.toolbar.addWidget(self.quit_button)
 
-
     def remove_quit_button(self):
         if self.quit_button:
-            action = self.quit_button.defaultAction()
-            if action:
-                # Retirer l'action de la barre d'outils
-                self.toolbar.removeAction(action)
-            # Supprimer le QToolButton
             self.quit_button.deleteLater()
             self.quit_button = None
-
-
 
     #segmentation
     def seg_button_use(self):
