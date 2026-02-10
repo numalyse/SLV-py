@@ -6,13 +6,15 @@ from no_focus_push_button import NoFocusPushButton
 
 class TimeEditor(QWidget):
     timechanged = Signal()
-    def __init__(self, parent=None, max_time=3600000, time=-1,fps=25):
+    def __init__(self, parent=None, max_time=3600000, time=-1,fps=25, min_time=0):
         super().__init__(parent)
         self.fps=fps
-        self.tf=1000/self.fps
+        self.tf=1000/self.fps # Durée d'une frame en millisecondes
+        self.min_time = min_time # Temps minimum pour éviter d'avoir end < start ou une valeur négative
         self.max_time = max_time
         self.time = 0  # Temps en millisecondes
         self.frame = 0  # Compteur de frames
+       
 
         # Layout principal horizontal
         self.main_layout = QHBoxLayout(self)
@@ -26,8 +28,11 @@ class TimeEditor(QWidget):
 
         # Limiter les saisies numériques avec des validators
         self.hours_edit.setValidator(QIntValidator(0, 99, self))
-        self.minutes_edit.setValidator(QIntValidator(0, 59, self))
-        self.seconds_edit.setValidator(QIntValidator(0, 59, self))
+        self.minutes_edit.setValidator(QIntValidator(0, 99, self)) # 99 pour laisser la correction à 59 min si supérieur
+        self.seconds_edit.setValidator(QIntValidator(0, 99, self))
+
+        # self.plus_frames_button = NoFocusPushButton("+", self)
+        # self.plus_frames_button.setFixedSize(30, 30)
 
         # Alignement centré et taille fixe pour un affichage uniforme
         self.hours_edit.setAlignment(Qt.AlignCenter)
@@ -36,6 +41,9 @@ class TimeEditor(QWidget):
         self.hours_edit.setFixedWidth(40)
         self.minutes_edit.setFixedWidth(40)
         self.seconds_edit.setFixedWidth(40)
+        self.hours_edit.setStyleSheet("font-size: 16px;")
+        self.minutes_edit.setStyleSheet("font-size: 16px;")
+        self.seconds_edit.setStyleSheet("font-size: 16px;")
 
         # Labels de séparation pour l'affichage "HH:MM:SS:FF"
         self.colon1 = QLabel(":", self)
@@ -45,30 +53,62 @@ class TimeEditor(QWidget):
         self.colon3 = QLabel(":", self)
         self.colon3.setAlignment(Qt.AlignCenter)
 
-        # Layout pour la gestion des frames
+        # Layout pour la gestion du temps
         self.grid_layout = QGridLayout()
         self.grid_layout.setSpacing(3)
+        self.grid_layout_hours = QGridLayout()
+        self.grid_layout_hours.setSpacing(3)
+        self.grid_layout_minutes = QGridLayout()
+        self.grid_layout_minutes.setSpacing(3)
+        self.grid_layout_seconds = QGridLayout()
+        self.grid_layout_seconds.setSpacing(3)
 
+        self.plus_hours_button = NoFocusPushButton("+", self)
+        self.plus_hours_button.setFixedSize(40, 30)
+        self.plus_minutes_button = NoFocusPushButton("+", self)
+        self.plus_minutes_button.setFixedSize(40, 30)
+        self.plus_seconds_button = NoFocusPushButton("+", self)
+        self.plus_seconds_button.setFixedSize(40, 30)
         self.plus_frames_button = NoFocusPushButton("+", self)
-        self.plus_frames_button.setFixedSize(30, 30)
+        self.plus_frames_button.setFixedSize(40, 30)
 
-        self.frames_label = QLabel("00", self)
-        self.frames_label.setAlignment(Qt.AlignCenter)
-        self.frames_label.setStyleSheet("font-size: 16px;")
+        self.frames_edit = QLineEdit(self)
+        self.frames_edit.setValidator(QIntValidator(0, 99, self))
+        self.frames_edit.setFixedWidth(40)
+        self.frames_edit.setAlignment(Qt.AlignCenter)
+        self.frames_edit.setStyleSheet("font-size: 16px;")
 
+        self.minus_hours_button = NoFocusPushButton("-", self)
+        self.minus_hours_button.setFixedSize(40, 30)
+        self.minus_minutes_button = NoFocusPushButton("-", self)
+        self.minus_minutes_button.setFixedSize(40, 30)
+        self.minus_seconds_button = NoFocusPushButton("-", self)
+        self.minus_seconds_button.setFixedSize(40, 30)
         self.minus_frames_button = NoFocusPushButton("-", self)
-        self.minus_frames_button.setFixedSize(30, 30)
+        self.minus_frames_button.setFixedSize(40, 30)
+        
+        self.grid_layout_hours.addWidget(self.plus_hours_button)
+        self.grid_layout_hours.addWidget(self.hours_edit)
+        self.grid_layout_hours.addWidget(self.minus_hours_button)
+
+        self.grid_layout_minutes.addWidget(self.plus_minutes_button)
+        self.grid_layout_minutes.addWidget(self.minutes_edit)
+        self.grid_layout_minutes.addWidget(self.minus_minutes_button)
+
+        self.grid_layout_seconds.addWidget(self.plus_seconds_button)
+        self.grid_layout_seconds.addWidget(self.seconds_edit)
+        self.grid_layout_seconds.addWidget(self.minus_seconds_button)
 
         self.grid_layout.addWidget(self.plus_frames_button)
-        self.grid_layout.addWidget(self.frames_label)
+        self.grid_layout.addWidget(self.frames_edit)
         self.grid_layout.addWidget(self.minus_frames_button)
 
         # Ajout des widgets au layout principal
-        self.main_layout.addWidget(self.hours_edit)
+        self.main_layout.addLayout(self.grid_layout_hours)
         self.main_layout.addWidget(self.colon1)
-        self.main_layout.addWidget(self.minutes_edit)
+        self.main_layout.addLayout(self.grid_layout_minutes)
         self.main_layout.addWidget(self.colon2)
-        self.main_layout.addWidget(self.seconds_edit)
+        self.main_layout.addLayout(self.grid_layout_seconds)
         self.main_layout.addWidget(self.colon3)
         self.main_layout.addLayout(self.grid_layout)
 
@@ -76,9 +116,16 @@ class TimeEditor(QWidget):
         self.hours_edit.textChanged.connect(self.on_time_edited)
         self.minutes_edit.textChanged.connect(self.on_time_edited)
         self.seconds_edit.textChanged.connect(self.on_time_edited)
+        self.frames_edit.textChanged.connect(self.on_time_edited)
 
-        # Connexion des boutons pour gérer les frames
-        self.plus_frames_button.clicked.connect(self.on_plus_frame)
+        # Connexion des boutons pour gérer le temps
+        self.plus_hours_button.clicked.connect(self.on_plus_hours)
+        self.minus_hours_button.clicked.connect(self.on_minus_hours)
+        self.plus_minutes_button.clicked.connect(self.on_plus_minutes)
+        self.minus_minutes_button.clicked.connect(self.on_minus_minutes)
+        self.plus_seconds_button.clicked.connect(self.on_plus_seconds)
+        self.minus_seconds_button.clicked.connect(self.on_minus_seconds)
+        self.plus_frames_button.clicked.connect(self.on_plus_frame) # La connexion du signal ne peut pas prendre de paramètre donc on utilise une fonction intermédiaire
         self.minus_frames_button.clicked.connect(self.on_minus_frame)
 
         # Initialisation de l'affichage du temps
@@ -94,15 +141,16 @@ class TimeEditor(QWidget):
     def get_time_in_milliseconds(self):
         return self.time
 
-    def set_time(self, milliseconds):
+    def set_time(self, milliseconds, edit_text=True):
         self.hours_edit.blockSignals(True)
         self.minutes_edit.blockSignals(True)
         self.seconds_edit.blockSignals(True)
+        self.frames_edit.blockSignals(True)
         """
         Met à jour le temps interne et l'affichage des zones de texte.
         """
         # S'assurer que le temps reste dans les limites autorisées
-        self.time = max(0, min(milliseconds, self.max_time))
+        self.time = max(self.min_time, min(milliseconds, self.max_time))
         total_seconds = self.time // 1000
         hours = int(total_seconds // 3600)
         minutes = int((total_seconds % 3600) // 60)
@@ -110,16 +158,44 @@ class TimeEditor(QWidget):
         frames = int((self.time % 1000) // self.tf)
 
         # Mise à jour des zones de texte avec un format à deux chiffres
-        self.hours_edit.setText(f"{hours:02}")
-        self.minutes_edit.setText(f"{minutes:02}")
-        self.seconds_edit.setText(f"{seconds:02}")
-        self.frames_label.setText(f"{frames:02}")
-
-        self.frame = frames
+        if edit_text or milliseconds >= self.max_time:
+            self.hours_edit.setText(f"{hours:02}")
+            self.minutes_edit.setText(f"{minutes:02}")
+            self.seconds_edit.setText(f"{seconds:02}")
+            self.frames_edit.setText(f"{frames:02}")
 
         self.hours_edit.blockSignals(False)
         self.minutes_edit.blockSignals(False)
         self.seconds_edit.blockSignals(False)
+        self.frames_edit.blockSignals(False)
+
+    def set_time_unedited(self, hours, minutes, seconds, frames):
+        """ Formattage du temps dans les zones LineEdit sans calcul du temps total """
+        hours = max(0, min(int(hours), 99))
+        minutes = max(0, min(int(minutes), 59))
+        seconds = max(0, min(int(seconds), 59))
+        frames = max(0, min(int(frames), int(self.fps-1)))
+
+        self.hours_edit.blockSignals(True)
+        self.minutes_edit.blockSignals(True)
+        self.seconds_edit.blockSignals(True)
+        self.frames_edit.blockSignals(True)
+
+        self.hours_edit.setText(f"{hours:02}")
+        self.minutes_edit.setText(f"{minutes:02}")
+        self.seconds_edit.setText(f"{seconds:02}")
+        self.frames_edit.setText(f"{frames:02}")
+
+        self.hours_edit.blockSignals(False)
+        self.minutes_edit.blockSignals(False)
+        self.seconds_edit.blockSignals(False)
+        self.frames_edit.blockSignals(False)
+
+        self.frame = frames
+        
+        new_time = (hours * 3600 + minutes * 60 + seconds) * 1000 + self.frame * self.tf
+        new_time = min(new_time, self.max_time)
+        self.set_time(new_time, False)
 
     def on_time_edited(self):
         try:
@@ -134,30 +210,54 @@ class TimeEditor(QWidget):
             seconds = int(self.seconds_edit.text())
         except ValueError:
             seconds = 0
+        try:
+            frames = int(self.frames_edit.text())
+        except ValueError:
+            frames = 0
 
-
-        new_time = (hours * 3600 + minutes * 60 + seconds) * 1000 + self.frame * self.tf
-        new_time = min(new_time, self.max_time)
-        self.set_time(new_time)
-
+        self.set_time_unedited(hours, minutes, seconds, frames)
         self.timechanged.emit()
 
+    def on_plus_hours(self):
+        self.on_plus_frames(3600.0 * float(self.fps))
+    
+    def on_minus_hours(self):
+        self.on_minus_frames(3600.0 * float(self.fps))
+
+    def on_plus_minutes(self):
+        self.on_plus_frames(60.0 * float(self.fps))
+    
+    def on_minus_minutes(self):
+        self.on_minus_frames(60.0 * float(self.fps))
+
+    def on_plus_seconds(self):
+        self.on_plus_frames(float(self.fps))
+
+    def on_minus_seconds(self):
+        self.on_minus_frames(float(self.fps))
+
     def on_plus_frame(self):
+        self.on_plus_frames()
+
+    def on_minus_frame(self):
+        self.on_minus_frames()
+
+    def on_plus_frames(self, amount=1.0):
         """
         Incrémente le nombre de frames de 1. Si l'incrémentation dépasse 24 frames, la seconde est augmentée.
         """
-        new_time = self.time + self.tf 
+        new_time = self.time + self.tf * amount 
         if new_time > self.max_time:
             new_time = self.max_time
         self.set_time(new_time)
 
         self.timechanged.emit()
 
-    def on_minus_frame(self):
+    def on_minus_frames(self, amount=1.0):
         """
         Décrémente le nombre de frames de 1. Si aucune frame n'est présente, la seconde est diminuée.
         """
-        new_time = self.time - self.tf 
+        new_time = self.time - self.tf * amount
         if new_time < 0:
             new_time = 0
         self.set_time(new_time)

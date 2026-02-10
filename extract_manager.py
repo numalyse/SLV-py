@@ -52,8 +52,9 @@ class ExtractManager(QWidget):
         time_label2 = QLabel("Fin :", dialog)
         layout.addWidget(time_label2)
 
-        self.end_time = TimeEditor(dialog, self.vlc.player.get_length(), self.vlc.player.get_time() + 10000, fps=self.vlc.fps)
+        self.end_time = TimeEditor(dialog, self.vlc.player.get_length(), self.vlc.player.get_time() + 10000, fps=self.vlc.fps, min_time=self.start_time.time)
         self.end_time.timechanged.connect(lambda: self.previewer2.preview_frame(self.end_time.get_time_in_milliseconds()))
+        self.end_time.timechanged.connect(lambda: setattr(self.end_time, 'min_time', self.start_time.time)) # Changer pour une fct de TimeEditor pour mettre à jour
         layout.addWidget(self.end_time)
 
         self.img2 = QLabel("", dialog)
