@@ -525,7 +525,7 @@ class VLCMainWindow(QMainWindow):
                 if(self.sync_widget.dialog_result):
                     current_video = self.vlc_widget.path_of_media # on récupère la vidéo actuellement chargée dans le lecteur
 
-                    if(current_video is not None and current_video is not ''): # si il y a une vidéo chargée, on la charge dans les players synchronisés et on active les boutons
+                    if(current_video is not None and current_video != ''): # si il y a une vidéo chargée, on la charge dans les players synchronisés et on active les boutons
                         for player in self.sync_widget.player_widgets: # on la charge dans tous les players synchronisés
                             player.load_video(current_video, False)
 
