@@ -105,7 +105,7 @@ class SyncWidget(QWidget):
         
         parent_window = self.main_window  # Utiliser la référence correcte
         
-
+        parent_window.quit_one_player_full_screen_signal.connect(self.full_screen_one_player)
 
         # Créer une disposition en grille
         grid_layout = QGridLayout()
@@ -178,7 +178,6 @@ class SyncWidget(QWidget):
         self.play_pause_button.setVisible(self.full_screen)
         self.stop_button.setVisible(self.full_screen)
         self.eject_button.setVisible(self.full_screen)
-        self.full_screen_button.setVisible(self.full_screen)
 
         # Appliquer le mode sombre en plein écran
         if not self.full_screen:
@@ -253,10 +252,10 @@ class SyncWidget(QWidget):
         fp=self.player_widgets[0].load_file(False)
         if fp:
             for i in self.player_widgets:
-                i.begin=True
+                i.begin=False
                 i.load_video(fp)
-            self.play_pause_button.setText("⏯️ Pause")
-            self.play=True
+            self.play_pause_button.setText("⏯️ Lire")
+            self.play=False
             self.enable_segmentation.emit(True)
 
 

@@ -1,6 +1,6 @@
 from PySide6.QtWidgets import QDockWidget, QMainWindow, QToolBar, QWidget, QPushButton, QFileDialog, QMessageBox, QDialog, QVBoxLayout, QLabel, QLineEdit,QMenu, QHBoxLayout, QButtonGroup, QRadioButton, QToolButton, QSlider
 from PySide6.QtGui import QAction, QKeySequence, QShortcut, QActionGroup, QImage, QPixmap
-from PySide6.QtCore import Qt, QTimer
+from PySide6.QtCore import Qt, QTimer, Signal
 
 from vlc_player_widget import VLCPlayerWidget
 from vlc_sync_widget import SyncWidget
@@ -28,6 +28,9 @@ import subprocess
 
 class VLCMainWindow(QMainWindow):
     """ Fenêtre principale contenant le lecteur et les menus. """
+
+    # Signal pour quitter le mode plein écran d'un seul player
+    quit_one_player_full_screen_signal = Signal(bool)
 
     def __init__(self):
         super().__init__()
@@ -88,6 +91,7 @@ class VLCMainWindow(QMainWindow):
         self.image_dock.setVisible(False)
 
 
+
     def display_size(self):
         # Obtenir la taille actuelle du vlc_widget
         taille = self.vlc_widget.size()
@@ -129,7 +133,8 @@ class VLCMainWindow(QMainWindow):
 
         # Menu Mode
         mode_menu = self.menu_bar.addMenu("Mode")
-        sync_mode_action = QAction("Lecture Synchronisée", self)
+        self.sync_mode_button = QAction("Lecture Synchronisée", self)
+        sync_mode_action = self.sync_mode_button
         sync_mode_action.triggered.connect(self.sync_button_use)
         mode_menu.addAction(sync_mode_action)
         mode_menu.addSeparator()
@@ -242,7 +247,12 @@ class VLCMainWindow(QMainWindow):
 
     def full_screen_action(self):
         if(self.sync_mode):
-            self.sync_widget.full_screen_action()
+            # Désactive la possibilité de faire plein écran d'un seul player si on est déjà en plein écran d'un seul player
+            if(self.sync_widget.full_screen_one):
+                # Signal pour afficher tous les players et désactiver le thème sombre
+                self.quit_one_player_full_screen_signal.emit(True)
+            else :
+                self.sync_widget.full_screen_action()
         else:
             self.vlc_widget.full_screen_action()
 
@@ -253,6 +263,8 @@ class VLCMainWindow(QMainWindow):
             self.side_menu.display.setVisible(player.full_screen)
 
         player.display(player.full_screen)
+        player.full_screen_button.setVisible(not player.full_screen)
+        player.full_screen_button.setGeometry(10, 10, 100, 30)  # Positionner le bouton en haut à gauche
         player.full_screen = not player.full_screen
         apply_dark_mode(self, player.full_screen)
 
@@ -493,9 +505,10 @@ class VLCMainWindow(QMainWindow):
 
                 self.sync_widget.exit_video_players()
 
+                self.sync_mode_button.setText("Lecture Synchronisée")
                 self.recreate_window()
             else:
-
+                self.sync_mode_button.setText("Quitter la Lecture Synchronisée")
                 self.remove_quit_button()
                 self.capture_video_button.setEnabled(False)
                 self.sync_mode = True
@@ -506,7 +519,7 @@ class VLCMainWindow(QMainWindow):
                 if(self.sync_widget.dialog_result):
 
                     current_video = self.vlc_widget.path_of_media # on récupère la vidéo actuellement chargée dans le lecteur
-                    for player in self.sync_widget.player_widgets:
+                    for player in self.sync_widget.player_widgets: # on la charge dans tous les players synchronisés
                         player.load_video(current_video, False)
 
                     self.vlc_widget.eject_video()

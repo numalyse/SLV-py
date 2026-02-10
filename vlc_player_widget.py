@@ -28,7 +28,8 @@ class VLCPlayerWidget(QWidget):
     enable_segmentation = Signal(bool)
     enable_recording = Signal(bool)
 
-    full_screen_requested = Signal(object)
+    # Signal pour demander le plein écran d'un player, envoie une référence au player qui a demandé le plein écran à sync_widget.
+    full_screen_requested = Signal(object) 
 
     enable_load = Signal(bool)
     slider_was_playing = False

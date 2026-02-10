@@ -14,7 +14,7 @@ def apply_dark_mode(window, enabled: bool) -> None:
             color: #ffffff;
         }
         QPushButton {
-            background-color: #333;
+            background-color: transparent;
         }
         QSlider::groove:horizontal {
             background: #444;
