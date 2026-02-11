@@ -254,6 +254,7 @@ class SyncWidget(QWidget):
             for i in self.player_widgets:
                 i.begin=False
                 i.load_video(fp)
+                
             self.play_pause_button.setText("⏯️ Lire")
             self.play=False
             self.enable_segmentation.emit(True)

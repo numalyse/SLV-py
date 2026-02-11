@@ -262,6 +262,8 @@ class VLCPlayerWidget(QWidget):
             self.player.set_media(self.media)
             self.player.audio_set_mute(self.mute)
 
+            self.progress_slider.setEnabled(True)
+
             if duration_ms is not None:
                 self.progress_slider.setRange(0, duration_ms)
             
@@ -269,7 +271,6 @@ class VLCPlayerWidget(QWidget):
                 self.player.play()
                 self.play_pause_button.setText("⏯️ Pause")
 
-            self.progress_slider.setEnabled(True)
             self.time_label.setStyleSheet("color: red;")            
             self.active_segmentation()
             if (suppr_seg):
@@ -277,6 +278,13 @@ class VLCPlayerWidget(QWidget):
             self.timer.start()  
 
             self.update_video_name()
+
+            # pour avoir le slider qui se met a jour, on play puis remet à 0, sinon player.get_length() / get_time() retourne -1 et le slider ne fonctionne pas
+            self.player.play()
+            self.player.set_pause(1)
+            self.set_position(0)
+            
+            self.update_ui() # update l'ui pour afficher la totale ect
     
     def play_video(self):
         self.player.play()
@@ -446,11 +454,11 @@ class VLCPlayerWidget(QWidget):
             return
 
         position = position / self.player.get_length()
-        if position == self.previous_slider_pos:
+        if position == self.previous_slider_pos and position != 0:
             return
 
         if self.media is not None:
-            
+
             # décalage à gauche atténué mais toujours présent 
             total_time = float(self.player.get_length())  # en secondes
             new_time = (float(position)) * total_time
