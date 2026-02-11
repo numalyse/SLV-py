@@ -183,6 +183,22 @@ class SideMenuWidget(QDockWidget):
             else:
                 seg["rect"].setBrush(QBrush(seg["color"]))
 
+    def get_current_button_data(self):
+        """ 
+        Retourne les informations du bouton (plan) actuellement actif 
+        (celui qui correspond au timecode actuel), ou None s'il n'y en a pas. 
+        """
+        if not self.vlc_widget.media:
+            return None
+
+        current_time = self.vlc_widget.player.get_time()
+
+        for i in range(len(self.display.stock_button)):
+            btn_data = self.display.stock_button[i]
+            if round(btn_data["time"]) <= round(current_time) < round(btn_data["end"]):
+                return btn_data
+
+        return None
 
     #fonction d'ajout d'une nouveaux bouton
     def add_new_button(self, name="", time=0, end=0, verif=True, frame1=-1, frame2=-1,color=None):
@@ -404,9 +420,16 @@ class SideMenuWidget(QDockWidget):
         time_label2 = QLabel("Fin :", dialog)
         layout.addWidget(time_label2)
 
-        self.time2 = TimeEditor(dialog, self.vlc_widget.player.get_length() , self.vlc_widget.player.get_time() + 5000,fps=self.vlc_widget.fps)
-        self.time2.timechanged.connect(lambda: self.previewer2.preview_frame(self.time2.get_time_in_milliseconds()))
-        layout.addWidget(self.time2)    
+        current_btn = self.get_current_button_data()
+
+        if current_btn is not None:
+            self.time2 = TimeEditor(dialog, self.vlc_widget.player.get_length() , current_btn["end"],fps=self.vlc_widget.fps)
+            self.time2.timechanged.connect(lambda: self.previewer2.preview_frame(self.time2.get_time_in_milliseconds()))
+            layout.addWidget(self.time2) 
+        else :
+            self.time2 = TimeEditor(dialog, self.vlc_widget.player.get_length() , self.vlc_widget.player.get_time() + 5000,fps=self.vlc_widget.fps)
+            self.time2.timechanged.connect(lambda: self.previewer2.preview_frame(self.time2.get_time_in_milliseconds()))
+            layout.addWidget(self.time2)    
 
         self.img2 = QLabel("", dialog)
         self.img2.setAlignment(Qt.AlignCenter)
