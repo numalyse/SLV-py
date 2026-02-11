@@ -157,6 +157,12 @@ class VLCPlayerWidget(QWidget):
         self.move_front_shortcut = QShortcut(QKeySequence("Right"), self)
         self.move_front_shortcut.activated.connect(self.move_front)
 
+        self.move_front_one_frame_shortcut = QShortcut(QKeySequence("A"), self)
+        self.move_front_one_frame_shortcut.activated.connect(self.move_back_one_frame)
+
+        self.move_front_one_frame_shortcut = QShortcut(QKeySequence("E"), self)
+        self.move_front_one_frame_shortcut.activated.connect(self.move_front_one_frame)
+
 
     def create_window_time(self, parent_layout):
         # Layout pour le temps + bouton mute
@@ -228,8 +234,36 @@ class VLCPlayerWidget(QWidget):
     def move_back(self):
         self.player.set_time(self.player.get_time()-5000)
 
+    def move_back_one_frame(self):
+        if self.media is None:
+            return
+        
+        current_time = self.player.get_time()
+        new_time = current_time - (1000.00 / self.fps)  # Recule d'une frame
+        
+        if new_time < 0: # Ne pas reculer avant le début de la vidéo
+            new_time = 0 
+            
+        new_time_normalized = new_time / self.player.get_length()  # Normaliser entre 0 et 1
+        #self.player.set_position(new_time_normalized)  # meilleure précision que set_time pour les petits sauts de temps
+        self.player.set_time(round(new_time)) 
+        
     def move_front(self):
         self.player.set_time(self.player.get_time()+5000)
+
+    def move_front_one_frame(self):
+        if self.media is None:
+            return
+        
+        current_time = self.player.get_time()
+        new_time = current_time + (1000.00 / self.fps)  # Avance d'une frame
+        
+        if new_time > self.player.get_length(): # Ne pas dépasser la durée totale de la vidéo
+            new_time = self.player.get_length()  
+
+        new_time_normalized = new_time / self.player.get_length()  # Normaliser entre 0 et 1
+        #self.player.set_position(new_time_normalized)  # Utiliser set_position pour une meilleure précision   
+        self.player.set_time(round(new_time)) 
 
     def full_screen_action(self):
         # Demande le full screen
@@ -443,7 +477,7 @@ class VLCPlayerWidget(QWidget):
         total_time = self.player.get_length()
 
         if current_time >= 0 and total_time > 0:
-            self.progress_slider.setValue(int((current_time / total_time) * total_time))
+            self.progress_slider.setValue(round((current_time / total_time) * total_time))
             current_time_str = self.time_manager.m_to_hmsf(current_time).replace(",",":")
             #self.line_edit.setText(current_time_str)
             total_time_str = self.time_manager.m_to_hmsf(total_time).replace(",",":")

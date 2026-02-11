@@ -175,13 +175,18 @@ class SideMenuWidget(QDockWidget):
 
         if self.display is None:
             return
+    
+        # On ajoute une petite marge de la moitié de la durée d'une frame 
+        # pour la comparaison pour compenser l'imprecision de player.get_time()
+        half_frame_duration = (1000.00 / self.vlc_widget.fps) / 2 
 
         for seg in self.display.stock_button:
-            if round(seg["time"]) <= round(current_time) < round(seg["end"]):
+            if round(seg["time"]) <= round(current_time) <= round(seg["end"] + half_frame_duration):
                 seg["rect"].setBrush(QBrush(QColor("red")))
                 self.set_position(seg["id"],go=False)
             else:
                 seg["rect"].setBrush(QBrush(seg["color"]))
+        
 
     def get_current_button_data(self):
         """ 
