@@ -370,10 +370,7 @@ class VLCPlayerWidget(QWidget):
         if name :
             capture_path = os.path.join(self.capture_dir, f"{file_name}_{timecode}_{name}.png")
         else:
-            if post_traitement:
-                capture_path = os.path.join(self.capture_dir, f"{file_name}_{timecode}_adjust.png")
-            else:
-                capture_path = os.path.join(self.capture_dir, f"{file_name}_{timecode}.png")
+            capture_path = os.path.join(self.capture_dir, f"{file_name}_{timecode}.png")
 
         # Capturer l'image (mais ne pas se fier au retour de la fonction)
         self.player.video_take_snapshot(0, capture_path, 0, 0)
@@ -382,9 +379,13 @@ class VLCPlayerWidget(QWidget):
         if os.path.exists(capture_path):
             print(f" Capture enregistrée : {capture_path}")
             if post_traitement:
+
                 image = cv2.imread(capture_path)
-                image_corrige=self.adjust_gamma(image,gamma=gamma)
-                cv2.imwrite(capture_path,image_corrige)
+                cv2.imwrite(capture_path, image)
+                capture_path = os.path.join(self.capture_dir, f"{file_name}_{timecode}_adjusted_{gamma}.png")
+                cv2.imwrite(capture_path, image)
+                print(capture_path)
+                
 
             # Si le format demandé est JPEG, convertir l'image
             if format_capture:  # Vérifie si format_capture existe et est True

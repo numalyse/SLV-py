@@ -368,13 +368,17 @@ class VLCMainWindow(QMainWindow):
 
                 self.toolbar.addWidget(QLabel("         ",self))
 
+                #valeur slider gamma
                 self.slider = QSlider(Qt.Horizontal, self)
                 self.slider.setRange(49,201)
                 self.slider.sliderMoved.connect(self.display_capture)
                 self.slider.setValue(self.gamma*100)
+                print(f"valeur slider : {self.slider.value()}")
                 self.toolbar.addWidget(self.slider)
 
                 self.affichage_slider = QLabel(str(self.gamma),self)
+                print(f"affichage str(self.gamma) : {str(self.gamma)}")
+                print(f"affichage_slider.text() : {self.affichage_slider.text()}")
                 self.toolbar.addWidget(self.affichage_slider)
 
                 self.validate_pt = NoFocusPushButton("Valider",self)
@@ -389,7 +393,7 @@ class VLCMainWindow(QMainWindow):
 
                 self.capture_button.setEnabled(False)
                 self.vlc_widget.pause_video()
-                self.path_post,_=self.vlc_widget.capture_screenshot(post_traitement=True)
+                self.path_post, _=self.vlc_widget.capture_screenshot(post_traitement=True)
                 self.image_post=cv2.imread(self.path_post)
                 self.image_corrige=self.vlc_widget.adjust_gamma(self.image_post,gamma=self.gamma)
                 self.display_corrected_image()
@@ -437,6 +441,8 @@ class VLCMainWindow(QMainWindow):
 
     def capture_action_with_post_traitement(self):
         self.suppr_pt()
+        print("path_post : ", self.path_post)
+        print("image_corrige : ", self.image_corrige)
 
         cv2.imwrite(self.path_post,self.image_corrige)
         if self.format_capture:
