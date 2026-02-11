@@ -121,6 +121,18 @@ class ProjectManager:
             if video_path and os.path.isfile(video_path):
                 # Charger la vidéo dans VLC
                 self.vlc.load_video(video_path, False)
+                # Après chargement de la vidéo, il faut ajuster les fps de la segmentation et de l'affichage pour qu'ils
+                # utilisent le même fps que le lecteur VLC, sinon les annotations ne seront pas synchronisées correctement avec la vidéo
+                try:
+                    fps = getattr(self.vlc, 'fps', None)
+                    if fps is not None:
+                        self.seg.fps = fps
+                        if hasattr(self.seg, 'time_manager'):
+                            self.seg.time_manager.set_fps(fps)
+                        if hasattr(self.seg, 'display') and hasattr(self.seg.display, 'time_manager'):
+                            self.seg.display.time_manager.set_fps(fps)
+                except Exception:
+                    pass
                 self.video_name = os.path.basename(video_path)
                 print(f"Vidéo chargée : {video_path}")
             else:

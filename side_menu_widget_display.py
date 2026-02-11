@@ -131,7 +131,7 @@ class SideMenuWidgetDisplay(QDockWidget):
         if end == 0:
             time_label = QLabel(f"Début : " + self.time_manager.m_to_hmsf(time), self)
         else:
-            duration = self.time_manager.m_to_hmsf(end + 1  - time)
+            duration = self.time_manager.m_to_hmsf(end - time)
             time_label = QLabel(f"Début : {self.time_manager.m_to_hmsf(time)} / Fin : {self.time_manager.m_to_hmsf(end)} \nDurée : {duration}", self)
 
         time_label.setFixedHeight(50)
