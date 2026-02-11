@@ -279,12 +279,17 @@ class VLCPlayerWidget(QWidget):
 
             self.update_video_name()
 
-            # pour avoir le slider qui se met a jour, on play puis remet à 0, sinon player.get_length() / get_time() retourne -1 et le slider ne fonctionne pas
-            self.player.play()
-            self.player.set_pause(1)
-            self.set_position(0)
+            # si on est dans un lecteur sync mode, on veut que le slider soit à jour et que la vidéo soit prête à être jouée, 
+            # mais on ne veut pas que la vidéo commence à jouer automatiquement
+            from main_window import VLCMainWindow
+            if not isinstance(self.parent_element, VLCMainWindow):
+                # pour avoir le slider qui se met a jour, on play puis remet à 0, sinon player.get_length() / get_time() retourne -1 et le slider ne fonctionne pas
+                self.player.play()
+                self.player.set_pause(1)
+                self.set_position(0)
+                
+                self.update_ui() # update l'ui pour afficher la totale ect
             
-            self.update_ui() # update l'ui pour afficher la totale ect
     
     def play_video(self):
         self.player.play()
@@ -450,7 +455,6 @@ class VLCPlayerWidget(QWidget):
     def set_position(self, position):
         """ Définit la position de lecture en fonction du slider. """
         if self.player.get_length() <= 0:
-            print("Durée de la vidéo = 0, impossible de définir la position.")
             return
 
         position = position / self.player.get_length()
