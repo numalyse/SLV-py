@@ -392,11 +392,12 @@ class VLCPlayerWidget(QWidget):
         if os.path.exists(capture_path):
             print(f" Capture enregistrée : {capture_path}")
             if post_traitement:
-
-                image = cv2.imread(capture_path)
-                cv2.imwrite(capture_path, image)
-                capture_path_str = file_name + "_" + timecode + "_adjusted"
-                print(capture_path)
+                
+                image = cv2.imdecode(np.fromfile(capture_path, dtype=np.uint8), cv2.IMREAD_COLOR)
+                is_success, im_buf_arr = cv2.imencode(".png", image)
+                im_buf_arr.tofile(capture_path)
+                # cv2.imwrite(capture_path, image)
+                capture_path_str = os.path.join(self.capture_dir, file_name + "_" + timecode + "_adjusted")
                 
 
             # Si le format demandé est JPEG, convertir l'image
@@ -407,6 +408,7 @@ class VLCPlayerWidget(QWidget):
         else:
             print("Erreur : La capture n'a pas été enregistrée !")
 
+        print("capture path : ",capture_path, ", capture_path_str : ",capture_path_str, ", capture_dir : ",self.capture_dir)
         return capture_path, timecode, capture_path_str, self.capture_dir
 
     def adjust_gamma(self,image, gamma=1.4):
