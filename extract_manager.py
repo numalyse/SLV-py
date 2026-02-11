@@ -24,44 +24,50 @@ class ExtractManager(QWidget):
 
         layout = QVBoxLayout(dialog)
 
-        # Zone de texte pour le nom
-        name_label = QLabel("Nom de l'extrait :", dialog)
-        layout.addWidget(name_label)
-        
-        self.folder_button = NoFocusPushButton("Sélectionner l'emplacement du fichier", dialog)
-        self.folder_button.setStyleSheet("background-color: red;")
-        self.folder_button.clicked.connect(self.save_export)
-        layout.addWidget(self.folder_button)
+        interval_layout = QHBoxLayout()
 
         # Choix du temps de début
+        start_time_editor_layout = QVBoxLayout()
+
         time_label = QLabel("Début :", dialog)
-        layout.addWidget(time_label)
+        start_time_editor_layout.addWidget(time_label)
 
         self.start_time = TimeEditor(dialog, (self.vlc.player.get_length()-1000), self.vlc.player.get_time(), fps=self.vlc.fps)
         self.start_time.timechanged.connect(lambda: self.previewer1.preview_frame(self.start_time.get_time_in_milliseconds()))
-        layout.addWidget(self.start_time)
-
+        
         # Label pour afficher l'image d'aperçu
         self.img1 = QLabel("", dialog)
         self.img1.setAlignment(Qt.AlignCenter)
-        layout.addWidget(self.img1)
+        start_time_editor_layout.addWidget(self.img1)
         self.previewer1 = FramePreviewer(self.img1, self.vlc.fps, self.vlc.path_of_media)
         self.previewer1.preview_frame(self.start_time.get_time_in_milliseconds())
 
+        
+        start_time_editor_layout.addWidget(self.start_time)
+
+        interval_layout.addLayout(start_time_editor_layout)
+
         # Choix du temps de fin
+        end_time_editor_layout = QVBoxLayout()
+        
         time_label2 = QLabel("Fin :", dialog)
-        layout.addWidget(time_label2)
+        end_time_editor_layout.addWidget(time_label2)
 
         self.end_time = TimeEditor(dialog, self.vlc.player.get_length(), self.vlc.player.get_time() + 10000, fps=self.vlc.fps, min_time=self.start_time.time)
         self.end_time.timechanged.connect(lambda: self.previewer2.preview_frame(self.end_time.get_time_in_milliseconds()))
         self.end_time.timechanged.connect(lambda: setattr(self.end_time, 'min_time', self.start_time.time)) # Changer pour une fct de TimeEditor pour mettre à jour
-        layout.addWidget(self.end_time)
 
         self.img2 = QLabel("", dialog)
         self.img2.setAlignment(Qt.AlignCenter)
-        layout.addWidget(self.img2)
+        end_time_editor_layout.addWidget(self.img2)
         self.previewer2 = FramePreviewer(self.img2, self.vlc.fps, self.vlc.path_of_media)
         self.previewer2.preview_frame(self.end_time.get_time_in_milliseconds())
+
+        end_time_editor_layout.addWidget(self.end_time)
+
+        interval_layout.addLayout(end_time_editor_layout)
+
+        layout.addLayout(interval_layout)
 
         dialog_load = QHBoxLayout()
         load = QLabel("")
@@ -70,11 +76,21 @@ class ExtractManager(QWidget):
         dialog_load.addWidget(load)
         layout.addLayout(dialog_load)
 
-
         # Boutons OK et Annuler
         button_layout = QHBoxLayout()
+
+        # Zone de texte pour le nom
+        name_label = QLabel("Nom de l'extrait :", dialog)
+        # name_label.setAlignment(Qt.AlignRight)
+
+        self.folder_button = NoFocusPushButton("Sélectionner l'emplacement du fichier", dialog)
+        self.folder_button.setStyleSheet("background-color: red;")
+        self.folder_button.clicked.connect(self.save_export)
         ok_button = NoFocusPushButton("Extraire", dialog)
         cancel_button = NoFocusPushButton("Annuler", dialog)
+        
+        button_layout.addWidget(name_label)
+        button_layout.addWidget(self.folder_button)
         button_layout.addWidget(ok_button)
         button_layout.addWidget(cancel_button)
         layout.addLayout(button_layout)
