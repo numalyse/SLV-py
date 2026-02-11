@@ -650,20 +650,29 @@ class VLCMainWindow(QMainWindow):
 
     def auto_save(self):
         if (self.project and self.save_state) or (not self.project and self.side_menu):
-            reply = QMessageBox.question(
-                self, "Quitter", "Voulez-vous enregistrer ce projet avant de quitter ?", 
-                QMessageBox.Yes | QMessageBox.No | QMessageBox.Cancel, QMessageBox.Yes
-            )
 
-            if reply == QMessageBox.Yes:
+            reply = QMessageBox()
+            reply.setIcon(QMessageBox.Question)
+            reply.setWindowTitle('Quitter')
+            reply.setText('Voulez-vous enregistrer ce projet avant de quitter ?')
+            reply.setStandardButtons(QMessageBox.Yes|QMessageBox.No | QMessageBox.Cancel)
+            buttonY = reply.button(QMessageBox.Yes)
+            buttonY.setText('Oui')
+            buttonN = reply.button(QMessageBox.No)
+            buttonN.setText('Non')
+            buttonC = reply.button(QMessageBox.Cancel)
+            buttonC.setText('Annuler')
+            reply.exec_()
+
+            if reply.clickedButton() == buttonY:
                 self.save_action()
                 return True
-            elif reply == QMessageBox.No:
+            elif reply.clickedButton() == buttonN:
                 return True
             else:
                 return False
         else :
-            return True    
+            return True     
 
     def change(self,state:bool):
         self.save_state=state
