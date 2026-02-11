@@ -441,6 +441,10 @@ class VLCPlayerWidget(QWidget):
 
     def set_position(self, position):
         """ Définit la position de lecture en fonction du slider. """
+        if self.player.get_length() <= 0:
+            print("Durée de la vidéo = 0, impossible de définir la position.")
+            return
+
         position = position / self.player.get_length()
         if position == self.previous_slider_pos:
             return
