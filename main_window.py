@@ -393,7 +393,7 @@ class VLCMainWindow(QMainWindow):
 
                 self.capture_button.setEnabled(False)
                 self.vlc_widget.pause_video()
-                self.path_post, _=self.vlc_widget.capture_screenshot(post_traitement=True)
+                self.path_post, _, self.path_post_str, self.capture_dir = self.vlc_widget.capture_screenshot(post_traitement=True)
                 self.image_post=cv2.imread(self.path_post)
                 self.image_corrige=self.vlc_widget.adjust_gamma(self.image_post,gamma=self.gamma)
                 self.display_corrected_image()
@@ -441,9 +441,9 @@ class VLCMainWindow(QMainWindow):
 
     def capture_action_with_post_traitement(self):
         self.suppr_pt()
-        print("path_post : ", self.path_post)
-        print("image_corrige : ", self.image_corrige)
 
+        gamma_str = str(self.gamma).replace('.', '-')
+        self.path_post = os.path.join(self.capture_dir, f"{self.path_post_str}_{gamma_str}.png")
         cv2.imwrite(self.path_post,self.image_corrige)
         if self.format_capture:
             self.vlc_widget.png_to_jpeg(self.path_post)

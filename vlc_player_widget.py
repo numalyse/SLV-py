@@ -390,8 +390,7 @@ class VLCPlayerWidget(QWidget):
 
                 image = cv2.imread(capture_path)
                 cv2.imwrite(capture_path, image)
-                capture_path = os.path.join(self.capture_dir, f"{file_name}_{timecode}_adjusted_{gamma}.png")
-                cv2.imwrite(capture_path, image)
+                capture_path_str = file_name + "_" + timecode + "_adjusted"
                 print(capture_path)
                 
 
@@ -403,7 +402,7 @@ class VLCPlayerWidget(QWidget):
         else:
             print("Erreur : La capture n'a pas été enregistrée !")
 
-        return capture_path, timecode
+        return capture_path, timecode, capture_path_str, self.capture_dir
 
     def adjust_gamma(self,image, gamma=1.4):
         inv_gamma = 1.0 / gamma
