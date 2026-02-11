@@ -422,11 +422,11 @@ class SideMenuWidget(QDockWidget):
 
         current_btn = self.get_current_button_data()
 
-        if current_btn is not None:
+        if current_btn is not None: # Si on est actuellement sur un plan, on initialise le time editor de fin à la fin de ce plan
             self.time2 = TimeEditor(dialog, self.vlc_widget.player.get_length() , current_btn["end"],fps=self.vlc_widget.fps)
             self.time2.timechanged.connect(lambda: self.previewer2.preview_frame(self.time2.get_time_in_milliseconds()))
             layout.addWidget(self.time2) 
-        else :
+        else : # Sinon, on initialise le time editor de fin à 5 secondes du timecode actuel
             self.time2 = TimeEditor(dialog, self.vlc_widget.player.get_length() , self.vlc_widget.player.get_time() + 5000,fps=self.vlc_widget.fps)
             self.time2.timechanged.connect(lambda: self.previewer2.preview_frame(self.time2.get_time_in_milliseconds()))
             layout.addWidget(self.time2)    
