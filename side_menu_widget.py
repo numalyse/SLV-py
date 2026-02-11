@@ -1,7 +1,7 @@
 from PySide6.QtWidgets import (QWidget, QVBoxLayout, QPushButton, QMenu, QInputDialog,
     QScrollArea, QDockWidget, QLabel, QDialog, QLineEdit, QSlider, QHBoxLayout,
     QSpinBox, QTextEdit, QFrame, QSizePolicy, QGraphicsView, QGraphicsScene, QGraphicsRectItem,QGraphicsItem)
-from PySide6.QtGui import QAction, QBrush, QColor, QPen, QPalette
+from PySide6.QtGui import QAction, QBrush, QColor, QPen, QKeySequence, QShortcut, QPalette
 from PySide6.QtCore import Qt, QTimer, Signal, QEvent, QRectF, QCoreApplication
 
 import cv2 
@@ -108,6 +108,7 @@ class SideMenuWidget(QDockWidget):
             self.buttons_layout.addWidget(self.seg_button)
         else:
             self.seg_ok = True
+            self.create_keyboard_shortcuts()
 
         self.color_button = NoFocusPushButton("Calcul Couleur", self)
         self.color_button.setStyleSheet("background-color: blue; color: white; padding: 5px; border-radius: 5px;")
@@ -481,7 +482,7 @@ class SideMenuWidget(QDockWidget):
             self.fps = video.fps
         return int((time/1000)*self.fps)
 
-    #fonction appeler quand on clique sur un bouton
+    #fonction appelée quand on clique sur un bouton
     def set_position(self, button,go=True):
         time=-1
         for i,btn_data in enumerate(self.display.stock_button):
@@ -491,6 +492,33 @@ class SideMenuWidget(QDockWidget):
                 break
         if go:
             self.vlc_widget.set_position_timecode(time)
+
+    def move_to_button(self, direction):
+        current_button = self.get_current_button_data()
+        if not current_button:
+            return
+
+        current_index = self.display.stock_button.index(current_button)
+        max_index = len(self.display.stock_button) - 1
+
+        new_index = max(0, min(current_index + direction, max_index))
+        if new_index == current_index:
+            return
+        
+        new_button = self.display.stock_button[new_index]
+
+        print(f"Current index: {current_index} → New index: {new_index} / Max: {max_index}")
+
+        self.vlc_widget.set_position_timecode(new_button["time"] + 1) #+1 pour être sûr d'être dans le plan et pas juste avant
+
+    def create_keyboard_shortcuts(self):
+        self.previous_button_shortcut = QShortcut(QKeySequence("Shift+Left"), self)
+        self.previous_button_shortcut.activated.connect(lambda: print("Shift + Left pressed!"))
+        self.previous_button_shortcut.activated.connect(lambda: self.move_to_button(-1))
+
+        self.next_button_shortcut = QShortcut(QKeySequence("Shift+Right"), self)
+        self.next_button_shortcut.activated.connect(lambda: print("Shift + Right pressed!"))
+        self.next_button_shortcut.activated.connect(lambda: self.move_to_button(1))
 
     def seg_action(self):
         self.seg_button.setText("Calcul Segmentation en cours ⌛")
