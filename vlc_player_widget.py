@@ -238,6 +238,9 @@ class VLCPlayerWidget(QWidget):
         if self.media is None:
             return
         
+        if self.player.is_playing():
+            self.pause_video()
+
         current_time = self.player.get_time()
         new_time = current_time - (1000.00 / self.fps)  # Recule d'une frame
         
@@ -245,8 +248,9 @@ class VLCPlayerWidget(QWidget):
             new_time = 0 
             
         new_time_normalized = new_time / self.player.get_length()  # Normaliser entre 0 et 1
-        #self.player.set_position(new_time_normalized)  # meilleure précision que set_time pour les petits sauts de temps
+        #self.player.set_position(new_time_normalized)
         self.player.set_time(round(new_time)) 
+        
         
     def move_front(self):
         self.player.set_time(self.player.get_time()+5000)
@@ -255,6 +259,9 @@ class VLCPlayerWidget(QWidget):
         if self.media is None:
             return
         
+        if self.player.is_playing():
+            self.pause_video()
+
         current_time = self.player.get_time()
         new_time = current_time + (1000.00 / self.fps)  # Avance d'une frame
         
@@ -262,7 +269,7 @@ class VLCPlayerWidget(QWidget):
             new_time = self.player.get_length()  
 
         new_time_normalized = new_time / self.player.get_length()  # Normaliser entre 0 et 1
-        #self.player.set_position(new_time_normalized)  # Utiliser set_position pour une meilleure précision   
+        #self.player.set_position(new_time_normalized)  # Utiliser set_position pour une meilleure précision mais marche moins bien 
         self.player.set_time(round(new_time)) 
 
     def full_screen_action(self):
