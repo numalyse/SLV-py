@@ -204,7 +204,6 @@ class VLCPlayerWidget(QWidget):
         """ Joue ou met en pause la vidéo, ou demande un fichier si aucune vidéo chargée. """
         if self.media is None:
             self.load_file()
-            self.progress_slider.setRange(0, self.player.get_length())
         elif self.player.is_playing():
             self.pause_video()
         else:
