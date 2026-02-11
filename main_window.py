@@ -505,9 +505,7 @@ class VLCMainWindow(QMainWindow):
 
                 self.sync_widget.exit_video_players()
 
-                self.capture_button.setEnabled(False)
-                self.subtitle_button.setEnabled(False)
-                self.capture_video_button.setEnabled(False)
+                #self.vlc_widget.enable_segmentation.emit(False) # Desactive les boutons de capture ect.
 
                 self.sync_mode_button.setText("Lecture Synchronisée")
                 self.recreate_window()
@@ -515,7 +513,7 @@ class VLCMainWindow(QMainWindow):
                 
                 self.sync_mode_button.setText("Quitter la Lecture Synchronisée")
                 self.remove_quit_button()
-                self.capture_video_button.setEnabled(False)
+                #self.capture_video_button.setEnabled(False)
                 self.sync_mode = True
 
                 self.sync_widget = SyncWidget(self)
@@ -523,16 +521,15 @@ class VLCMainWindow(QMainWindow):
                 self.sync_widget.configure()
 
                 if(self.sync_widget.dialog_result):
+                    # Connecte les signaux du sync_widget vers la fenêtre principale
+                    self.create_sync_window()
+
                     current_video = self.vlc_widget.path_of_media # on récupère la vidéo actuellement chargée dans le lecteur
+                    self.vlc_widget.eject_video()
 
-                    if(current_video is not None and current_video != ''): # si il y a une vidéo chargée, on la charge dans les players synchronisés et on active les boutons
-                        for player in self.sync_widget.player_widgets: # on la charge dans tous les players synchronisés
-                            player.load_video(current_video, False)
-
-                        self.vlc_widget.eject_video()
-                        self.capture_button.setEnabled(True)
-                        self.subtitle_button.setEnabled(True)
-                        self.capture_video_button.setEnabled(True)
+                    if current_video is not None and current_video != '': # si il y a une vidéo chargée, on la charge dans les players synchronisés
+                        for player in self.sync_widget.player_widgets:
+                            player.load_video(current_video)
 
                     self.add_quit_button()
                                        

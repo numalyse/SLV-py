@@ -312,7 +312,6 @@ class VLCPlayerWidget(QWidget):
             self.player.set_nsobject(0)
             self.player.set_nsobject(self.video_frame.winId())
 
-    # L'éjection est différée pour éviter les crashs liés à VLC, par défaut, pas différé (0ms)
     def eject_video(self):
         """ Arrête et décharge la vidéo. """
 
