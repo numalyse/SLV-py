@@ -19,7 +19,8 @@ class TimeEditor(QWidget):
         # Layout principal horizontal
         self.main_layout = QHBoxLayout(self)
         self.main_layout.setContentsMargins(0, 0, 0, 0)
-        self.main_layout.setSpacing(1)
+        self.main_layout.setSpacing(3)
+        self.main_layout.addSpacing(40)
 
         # Création des zones de texte pour les heures, minutes et secondes
         self.hours_edit = QLineEdit(self)
@@ -55,13 +56,13 @@ class TimeEditor(QWidget):
 
         # Layout pour la gestion du temps
         self.grid_layout = QGridLayout()
-        self.grid_layout.setSpacing(3)
+        self.grid_layout.setSpacing(1)
         self.grid_layout_hours = QGridLayout()
-        self.grid_layout_hours.setSpacing(3)
+        self.grid_layout_hours.setSpacing(1)
         self.grid_layout_minutes = QGridLayout()
-        self.grid_layout_minutes.setSpacing(3)
+        self.grid_layout_minutes.setSpacing(1)
         self.grid_layout_seconds = QGridLayout()
-        self.grid_layout_seconds.setSpacing(3)
+        self.grid_layout_seconds.setSpacing(1)
 
         self.plus_hours_button = NoFocusPushButton("+", self)
         self.plus_hours_button.setFixedSize(40, 30)
@@ -111,6 +112,7 @@ class TimeEditor(QWidget):
         self.main_layout.addLayout(self.grid_layout_seconds)
         self.main_layout.addWidget(self.colon3)
         self.main_layout.addLayout(self.grid_layout)
+        self.main_layout.addSpacing(40)
 
         # Connexion des signaux pour mettre à jour le temps lors de l'édition
         self.hours_edit.textChanged.connect(self.on_time_edited)
