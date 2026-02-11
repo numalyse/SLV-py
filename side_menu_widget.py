@@ -1,7 +1,7 @@
 from PySide6.QtWidgets import (QWidget, QVBoxLayout, QPushButton, QMenu, QInputDialog,
     QScrollArea, QDockWidget, QLabel, QDialog, QLineEdit, QSlider, QHBoxLayout,
     QSpinBox, QTextEdit, QFrame, QSizePolicy, QGraphicsView, QGraphicsScene, QGraphicsRectItem,QGraphicsItem)
-from PySide6.QtGui import QAction, QBrush, QColor, QPen
+from PySide6.QtGui import QAction, QBrush, QColor, QPen, QPalette
 from PySide6.QtCore import Qt, QTimer, Signal, QEvent, QRectF, QCoreApplication
 
 import cv2 
@@ -400,8 +400,20 @@ class SideMenuWidget(QDockWidget):
         # Zone de texte pour le nom
         name_label = QLabel("Nom du plan :", dialog)
         layout.addWidget(name_label)
+
         name_input = QLineEdit(dialog)
         layout.addWidget(name_input)
+
+        # Change le background si du texte est présent ou pas
+        default_style = name_input.styleSheet()
+        def _update_name_bg(text: str):
+            if text.strip() == "":
+                name_input.setStyleSheet("background-color: #ffcccc")
+            else:
+                name_input.setStyleSheet(default_style)
+
+        name_input.textChanged.connect(_update_name_bg)
+        _update_name_bg(name_input.text())
 
         time_label = QLabel("Début :", dialog)
         layout.addWidget(time_label)
