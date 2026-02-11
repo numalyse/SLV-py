@@ -163,14 +163,14 @@ class VLCPlayerWidget(QWidget):
         self.time_layout = QHBoxLayout()
 
         self.line_edit=QLineEdit()
-        self.line_edit.setText("00:00:00")
+        self.line_edit.setText("00:00:00[00]")
         self.line_edit.setAlignment(Qt.AlignCenter)
         self.line_edit.setFixedWidth(80)
         self.line_edit.setFocusPolicy(Qt.ClickFocus)
         self.line_edit.textChanged.connect(self.on_value_changed)
 
         # Affichage du temps
-        self.time_label = QLabel("00:00:00 / 00:00:00", self)
+        self.time_label = QLabel("00:00:00[00] / 00:00:00[00]", self)
         self.time_label.setAlignment(Qt.AlignCenter)
         self.time_label.setFixedHeight(15)
 
@@ -475,9 +475,12 @@ class VLCPlayerWidget(QWidget):
         
         # Vérifier si le format est valide (mm:ss)
         try:
-            hours, minutes, seconds = map(int, time_str.split(":"))
-            new_time = (hours*3600 + minutes * 60 + seconds) * 1000  # Convertir en millisecondes
+            hours, minutes, seconds_frames = time_str.split(":")
+            seconds, frames = seconds_frames.split("[")
+            frames = int(str(frames).replace("]", ""))
+            new_time = (int(hours)*3600 + int(minutes) * 60 + int(seconds)) * 1000 + 1000/self.fps * frames # Convertir en millisecondes
         except ValueError:
+            print("Format du timecode invalide. Utilisez le format HH:MM:SS[FF].")
             return  # Si la conversion échoue, on ignore l'entrée
 
         self.set_position_timecode(new_time)
