@@ -59,6 +59,10 @@ class SegmentationThread(QThread):
             
             #save_images(scene_list,video,num_images=1,output_dir=output_dir)
             
+            # Si pas de scène détectée, on considère que la vidéo entière est une seule scène
+            if len(timecodes) == 0:
+                timecodes.append((0, video.duration.get_seconds() * 1000, 0, video.frame_number))  
+
             if self.running:
                 self.segmentation_done.emit(timecodes)
         except StopProcessingException:

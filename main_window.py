@@ -535,6 +535,7 @@ class VLCMainWindow(QMainWindow):
                                        
                 else:
                     self.sync_mode=False
+                    self.sync_mode_button.setText("Lecture Synchronisée")
 
     def create_sync_window(self):
         self.sync_widget.enable_segmentation.connect(self.capture_button.setEnabled)
