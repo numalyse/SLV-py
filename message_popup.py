@@ -1,9 +1,11 @@
-from PySide6.QtWidgets import QWidget, QMessageBox, QLabel
+from PySide6.QtWidgets import QWidget, QMessageBox, QLabel, QPushButton
 from PySide6.QtCore import Qt, QTimer
 from PySide6.QtGui import QFont
+import os
+from pathlib import Path
 
 class MessagePopUp(QWidget):  
-    def __init__(self, parent, msg1=True,titre="Succès",txt="L'action a été effectuée avec succès !",type="info",time=2000):
+    def __init__(self, parent, msg1=True,titre="Succès",txt="L'action a été effectuée avec succès !",type="info",time=2000, capture_button=False):
         super().__init__(parent)
         
         self.affichage = QLabel("Appuyez sur Échap pour quitter le plein écran", parent)
@@ -27,11 +29,11 @@ class MessagePopUp(QWidget):
         self.parent = parent
 
         if msg1:
-            self.show_message(titre,txt,type,time)
+            self.show_message(titre,txt,type,time, capture_button=capture_button)
         else:
             self.show_message_2()
 
-    def show_message(self, title, message, message_type="info", timeout=2000):
+    def show_message(self, title, message, message_type="info", timeout=2000, capture_button=False):
         self.msg_box = QMessageBox(self.parent)  
 
         if message_type == "info":
@@ -45,11 +47,21 @@ class MessagePopUp(QWidget):
 
         self.msg_box.setWindowTitle(title)
         self.msg_box.setText(message)
-        self.msg_box.setStandardButtons(QMessageBox.NoButton)
+        
+        if(capture_button):
+            capture_button = self.msg_box.addButton("Ouvrir", QMessageBox.ActionRole)
+            capture_button.clicked.connect(self.open_capture_folder)
+        
+        self.msg_box.addButton("OK", QMessageBox.ActionRole)
 
         if(timeout>0):
             QTimer.singleShot(timeout, self.msg_box.accept)
         self.msg_box.show()
+
+    def open_capture_folder(self):
+        capture_dir = os.path.join(str(Path.home()), "SLV_Content", "Captures_Vidéos")
+        os.startfile(capture_dir)
+
 
     def hide_message(self):
         self.msg_box.hide()

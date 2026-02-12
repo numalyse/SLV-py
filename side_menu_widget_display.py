@@ -297,7 +297,7 @@ class SideMenuWidgetDisplay(QDockWidget):
         capture_path = os.path.join(capture_dir, f"{button.text()}_{self.time_manager.timecodename(time)}_{self.time_manager.timecodename(end)}.mp4")
 
         self.vlc_widget.extract_segment_with_ffmpeg(self.vlc_widget.path_of_media,time/1000,duration/1000,capture_path)
-        affichage=MessagePopUp(self)
+        affichage=MessagePopUp(self, time=-1, capture_button=True)
 
 
     #modif temps non utilisé
