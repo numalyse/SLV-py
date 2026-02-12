@@ -197,7 +197,7 @@ class VLCPlayerWidget(QWidget):
         self.mute_button.clicked.connect(self.toggle_mute)  
 
         # Ajouter les éléments au layout
-        self.time_layout.addLayout(self.line_edit)
+        self.time_layout.addWidget(self.line_edit)
         self.time_layout.addWidget(self.time_label)
         self.time_layout.addWidget(self.speed_button)
         self.time_layout.addWidget(self.mute_button)
