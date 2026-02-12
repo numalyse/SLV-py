@@ -18,6 +18,7 @@ from PySide6.QtGui import QKeySequence, QShortcut
 
 
 from custom_slider import CustomSlider
+from custom_timestamp_edit import CustomTimestampEdit
 from playback_speed_button import PlaybackSpeedButton
 from time_manager import TimeManager
 from no_focus_push_button import NoFocusPushButton
@@ -34,6 +35,7 @@ class VLCPlayerWidget(QWidget):
     enable_load = Signal(bool)
     slider_was_playing = False
     previous_slider_pos = 0
+    ts_was_video_playing = False
 
     def __init__(self, parent=None,add_controls=False,add_window_time=True,m=True,c=True):
         super().__init__(parent)
@@ -158,21 +160,26 @@ class VLCPlayerWidget(QWidget):
 
         self.move_front_shortcut = QShortcut(QKeySequence("Right"), self)
         self.move_front_shortcut.activated.connect(self.move_front)
-
         self.move_front_one_frame_shortcut = QShortcut(QKeySequence("E"), self)
         self.move_front_one_frame_shortcut.activated.connect(self.move_front_one_frame)
+        
+    def timestamp_edit_play_pause(self):
+        """ Si la vidéo était en train de jouer, relance la lecture """
+        if(self.ts_was_video_playing):
+            self.play_video()
+    
+    def on_timestamp_focus_in(self):
+        self.ts_was_video_playing = self.player.is_playing()
+        self.pause_video()
 
 
     def create_window_time(self, parent_layout):
         # Layout pour le temps + bouton mute
         self.time_layout = QHBoxLayout()
-
-        self.line_edit=QLineEdit()
-        self.line_edit.setText("00:00:00[00]")
-        self.line_edit.setAlignment(Qt.AlignCenter)
-        self.line_edit.setFixedWidth(80)
-        self.line_edit.setFocusPolicy(Qt.ClickFocus)
-        self.line_edit.textChanged.connect(self.on_value_changed)
+        self.line_edit = CustomTimestampEdit(self)
+        self.line_edit.focus_in.connect(self.on_timestamp_focus_in)
+        self.line_edit.value_changed.connect(self.on_value_changed)
+        self.line_edit.edit_finished.connect(self.timestamp_edit_play_pause)
 
         # Affichage du temps
         self.time_label = QLabel("00:00:00[00] / 00:00:00[00]", self)
@@ -190,7 +197,7 @@ class VLCPlayerWidget(QWidget):
         self.mute_button.clicked.connect(self.toggle_mute)  
 
         # Ajouter les éléments au layout
-        self.time_layout.addWidget(self.line_edit)
+        self.time_layout.addLayout(self.line_edit)
         self.time_layout.addWidget(self.time_label)
         self.time_layout.addWidget(self.speed_button)
         self.time_layout.addWidget(self.mute_button)
@@ -498,6 +505,9 @@ class VLCPlayerWidget(QWidget):
             #self.line_edit.setText(current_time_str)
             total_time_str = self.time_manager.m_to_hmsf(total_time).replace(",",":")
             self.time_label.setText(f"{current_time_str} / {total_time_str}")
+            self.line_edit.blockSignals(True)
+            if self.player.is_playing(): self.line_edit.set_text(current_time_str)
+            self.line_edit.blockSignals(False)
 
         if self.player.get_state()==6 :
             self.restart_video()
@@ -521,7 +531,7 @@ class VLCPlayerWidget(QWidget):
 
     def on_value_changed(self):
         """ Change la position de la vidéo lorsqu'on modifie le timecode dans le QLineEdit. """
-        time_str = self.line_edit.text()
+        time_str = self.line_edit.get_time_str()
         
         # Vérifier si le format est valide (mm:ss)
         try:
