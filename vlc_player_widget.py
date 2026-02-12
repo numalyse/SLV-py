@@ -141,7 +141,7 @@ class VLCPlayerWidget(QWidget):
         self.button_layout.addWidget(self.stop_button)
 
         self.eject_button = NoFocusPushButton("⏏️ Éjecter", self)
-        self.eject_button.clicked.connect(self.eject_video)
+        self.eject_button.clicked.connect(lambda: self.eject_video(True))
         self.button_layout.addWidget(self.eject_button)
 
         self.full_screen_button = NoFocusPushButton("⛶ Plein écran", self)
@@ -363,7 +363,7 @@ class VLCPlayerWidget(QWidget):
         self.pause_video()
 
 
-    def eject_video(self):
+    def eject_video(self, use_stop = True):
         """ Arrête et décharge la vidéo. Lance player.stop() depuis un thread séparé """
 
         if self.media is None or self.player is None: # Si déjà éjecté ou pas de vidéo chargée, on ne fait rien
@@ -377,17 +377,19 @@ class VLCPlayerWidget(QWidget):
         self.path_of_media = None
         self.media = None
         self.estimated_time = None
+        if(use_stop):
+            def _stop_player():
+                try:
+                    self.player.stop()
+                except Exception:
+                    pass
 
-        def _stop_player():
-            try:
-                self.player.stop()
-            except Exception:
-                pass
+                # quand l'ejection est terminée, on met à jour l'interface
+                self.finish_eject()
 
-            # quand l'ejection est terminée, on met à jour l'interface
+            threading.Thread(target=_stop_player, daemon=True).start()
+        else:
             self.finish_eject()
-
-        threading.Thread(target=_stop_player, daemon=True).start()
 
     def finish_eject(self):
 

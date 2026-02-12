@@ -244,7 +244,7 @@ class SyncWidget(QWidget):
 
     def exit_video_players(self):
         for i in self.player_widgets:
-            i.eject_video()
+            i.eject_video(True)
         self.play_pause_button.setText("⏯️ Lire")
         self.enable_segmentation.emit(False)
 

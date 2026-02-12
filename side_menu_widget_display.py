@@ -372,9 +372,9 @@ class SideMenuWidgetDisplay(QDockWidget):
 
 
     def change_label_time(self,label,new_time,end_time):
-        new_label ="Début : "+self.time_manager.m_to_hmsf(new_time)+" / Fin : "+self.time_manager.m_to_hmsf(end_time)
+        new_label ="Début : "+self.time_manager.m_to_hmsf(new_time)+" / Fin : "+self.time_manager.m_to_hmsf(end_time)+ " \nDurée : "+self.time_manager.m_to_hmsf(end_time-new_time)
         label.setText(new_label)
-
+        
     def adjust_neighbors(self, new_time, new_end_time):
         frame1 = self.parent.get_frame(new_time)
         frame2 = self.parent.get_frame(new_end_time)
@@ -410,7 +410,7 @@ class SideMenuWidgetDisplay(QDockWidget):
                     else:
                         tab_suppr.append(btn_data["button"])
                 # Cas où le bouton existant se termine dans l'intervalle du nouveau bouton
-                if btn_data["end"] == new_time or (btn_data["end"] >= new_time and btn_data["end"] < new_end_time):
+                if btn_data["end"] == new_time or (btn_data["end"] >= new_time and btn_data["end"] <= new_end_time):
                     if new_time > btn_data["time"]:
                         btn_data["end"] = new_time
                         btn_data["frame2"] = frame1

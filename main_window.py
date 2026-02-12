@@ -299,7 +299,7 @@ class VLCMainWindow(QMainWindow):
             project_path = QFileDialog.getExistingDirectory(self, "Sélectionner le dossier du projet à ouvrir",default_dir)
             if project_path :
                 
-                self.vlc_widget.eject_video() # ejecte la vidéo seulement quand on a validé l'ouerture du projet
+                self.vlc_widget.eject_video(False) # ejecte la vidéo seulement quand on a validé l'ouerture du projet
 
                 #self.recreate_window()
 
