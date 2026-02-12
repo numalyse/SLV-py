@@ -18,6 +18,7 @@ from PySide6.QtGui import QKeySequence, QShortcut
 
 
 from custom_slider import CustomSlider
+from custom_timestamp_edit import CustomTimestampEdit
 from playback_speed_button import PlaybackSpeedButton
 from time_manager import TimeManager
 from no_focus_push_button import NoFocusPushButton
@@ -34,6 +35,7 @@ class VLCPlayerWidget(QWidget):
     enable_load = Signal(bool)
     slider_was_playing = False
     previous_slider_pos = 0
+    ts_was_video_playing = False
 
     def __init__(self, parent=None,add_controls=False,add_window_time=True,m=True,c=True):
         super().__init__(parent)
@@ -157,17 +159,22 @@ class VLCPlayerWidget(QWidget):
         self.move_front_shortcut = QShortcut(QKeySequence("Right"), self)
         self.move_front_shortcut.activated.connect(self.move_front)
 
+    def timestamp_edit_play_pause(self):
+        """ Si la vidéo était en train de jouer, relance la lecture """
+        if(self.ts_was_video_playing):
+            self.play_video()
+    
+    def on_timestamp_focus_in(self):
+        self.ts_was_video_playing = self.player.is_playing()
+        self.pause_video()
 
     def create_window_time(self, parent_layout):
         # Layout pour le temps + bouton mute
         self.time_layout = QHBoxLayout()
-
-        self.line_edit=QLineEdit()
-        self.line_edit.setText("00:00:00[00]")
-        self.line_edit.setAlignment(Qt.AlignCenter)
-        self.line_edit.setFixedWidth(80)
-        self.line_edit.setFocusPolicy(Qt.ClickFocus)
-        self.line_edit.textChanged.connect(self.on_value_changed)
+        self.line_edit = CustomTimestampEdit(self)
+        self.line_edit.focus_in.connect(self.on_timestamp_focus_in)
+        self.line_edit.value_changed.connect(self.on_value_changed)
+        self.line_edit.edit_finished.connect(self.timestamp_edit_play_pause)
 
         # Affichage du temps
         self.time_label = QLabel("00:00:00[00] / 00:00:00[00]", self)
@@ -471,7 +478,7 @@ class VLCPlayerWidget(QWidget):
 
     def on_value_changed(self):
         """ Change la position de la vidéo lorsqu'on modifie le timecode dans le QLineEdit. """
-        time_str = self.line_edit.text()
+        time_str = self.line_edit.get_time_str()
         
         # Vérifier si le format est valide (mm:ss)
         try:
