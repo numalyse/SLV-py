@@ -124,6 +124,12 @@ class SideMenuWidget(QDockWidget):
         self.buttons_layout.addWidget(self.add_button)
         self.add_button.setVisible(self.seg_ok)
 
+        self.add_button = NoFocusPushButton("Scinder le plan", self)
+        self.add_button.setStyleSheet("background-color: purple; color: white; padding: 5px; border-radius: 5px;")
+        self.add_button.clicked.connect(self.split_plan)
+        self.add_button.setFixedHeight(40)
+        self.buttons_layout.addWidget(self.add_button)
+        self.add_button.setVisible(self.seg_ok)
 
 
         self.buttons_layout.addStretch()
@@ -483,6 +489,26 @@ class SideMenuWidget(QDockWidget):
         cancel_button.clicked.connect(dialog.reject)
 
         dialog.exec()
+
+    def split_plan(self, button):
+        print("split plan")
+        button_to_split = self.get_current_button_data()
+
+        if button_to_split is None:
+            return
+        
+        # Le plan de gauche garde le même nom, annotation ect.
+
+        current_time = self.vlc_widget.get_current_time()
+        current_frame = self.time_manager.m_to_frame(current_time)
+
+        self.add_new_button(name="Plan", time=current_time, end=button_to_split["end"],frame1=current_frame,frame2=button_to_split["frame2"])
+        button_to_split["frame2"] = current_frame-1
+        button_to_split["end"] = self.time_manager.frame_to_m(current_frame-1)
+        self.display.change_label_time(button_to_split["label"], button_to_split["time"], button_to_split["end"])
+
+        self.display.reorganize_buttons()
+
 
     def get_frame(self,time):
         if(self.fps==None):

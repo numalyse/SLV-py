@@ -9,6 +9,7 @@ from moviepy import VideoFileClip
 import vlc
 
 import time
+import threading
 import ffmpeg
 from datetime import datetime
 from PySide6.QtWidgets import QWidget, QVBoxLayout, QHBoxLayout, QPushButton, QFrame, QFileDialog, QSlider, QLabel, QLineEdit
@@ -142,7 +143,7 @@ class VLCPlayerWidget(QWidget):
         self.button_layout.addWidget(self.stop_button)
 
         self.eject_button = NoFocusPushButton("⏏️ Éjecter", self)
-        self.eject_button.clicked.connect(self.eject_video)
+        self.eject_button.clicked.connect(lambda: self.eject_video(True))
         self.button_layout.addWidget(self.eject_button)
 
         self.full_screen_button = NoFocusPushButton("⛶ Plein écran", self)
@@ -368,20 +369,9 @@ class VLCPlayerWidget(QWidget):
         self.restart_video()
         self.pause_video()
 
-    def empty_video_frame(self):
-        """ Forcer le nettoyage de la dernière frame en détachant puis réattachant la sortie vidéo au player """
-        if sys.platform.startswith("linux"):
-            self.player.set_xwindow(0)
-            self.player.set_xwindow(self.video_frame.winId())
-        elif sys.platform == "win32":
-            self.player.set_hwnd(0)
-            self.player.set_hwnd(self.video_frame.winId())
-        elif sys.platform == "darwin":
-            self.player.set_nsobject(0)
-            self.player.set_nsobject(self.video_frame.winId())
 
-    def eject_video(self):
-        """ Arrête et décharge la vidéo. """
+    def eject_video(self, use_stop = True):
+        """ Arrête et décharge la vidéo. Lance player.stop() depuis un thread séparé """
 
         if self.media is None or self.player is None: # Si déjà éjecté ou pas de vidéo chargée, on ne fait rien
             return
@@ -391,13 +381,24 @@ class VLCPlayerWidget(QWidget):
         if self.player.is_playing():
             self.player.set_pause(1)
 
-        # Détacher le média sans appeler stop() sinon crash VLC, mais ça laisse la dernière frame affichée, d'où le nettoyage visuel ensuite
-        self.player.set_media(None)
         self.path_of_media = None
         self.media = None
         self.estimated_time = None
+        if(use_stop):
+            def _stop_player():
+                try:
+                    self.player.stop()
+                except Exception:
+                    pass
 
-        self.empty_video_frame()
+                # quand l'ejection est terminée, on met à jour l'interface
+                self.finish_eject()
+
+            threading.Thread(target=_stop_player, daemon=True).start()
+        else:
+            self.finish_eject()
+
+    def finish_eject(self):
 
         if self.ac: 
             self.play_pause_button.setText("⏯️ Lire")
@@ -410,6 +411,7 @@ class VLCPlayerWidget(QWidget):
 
         self.disable_segmentation()
         self.update_video_name()
+
         self.enable_load.emit(False)
 
     def restart_video(self):
