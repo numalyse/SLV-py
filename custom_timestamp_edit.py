@@ -68,7 +68,6 @@ class CustomTimestampEdit(QWidget):
         return self.timestamp_edit.text()
     
     def on_value_changed(self):
-        print("new value : ", self.timestamp_edit.text())
         self.value_changed.emit()
 
     def on_button_clicked(self):

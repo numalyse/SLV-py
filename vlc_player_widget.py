@@ -455,6 +455,9 @@ class VLCPlayerWidget(QWidget):
             #self.line_edit.setText(current_time_str)
             total_time_str = self.time_manager.m_to_hmsf(total_time).replace(",",":")
             self.time_label.setText(f"{current_time_str} / {total_time_str}")
+            self.line_edit.blockSignals(True)
+            if self.player.is_playing(): self.line_edit.set_text(current_time_str)
+            self.line_edit.blockSignals(False)
 
         if self.player.get_state()==6 :
             self.restart_video()
