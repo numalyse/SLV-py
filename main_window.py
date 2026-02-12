@@ -531,7 +531,7 @@ class VLCMainWindow(QMainWindow):
                     self.create_sync_window()
 
                     current_video = self.vlc_widget.path_of_media # on récupère la vidéo actuellement chargée dans le lecteur
-                    self.vlc_widget.eject_video()
+                    self.vlc_widget.eject_video(True)
 
                     if current_video is not None and current_video != '': # si il y a une vidéo chargée, on la charge dans les players synchronisés
                         for player in self.sync_widget.player_widgets:

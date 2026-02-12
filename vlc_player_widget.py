@@ -384,25 +384,10 @@ class VLCPlayerWidget(QWidget):
         self.path_of_media = None
         self.media = None
         self.estimated_time = None
-        if(use_stop):
-            def _stop_player():
-                try:
-                    self.player.stop()
-                except Exception:
-                    pass
-
-                # quand l'ejection est terminée, on met à jour l'interface
-                self.finish_eject()
-
-            threading.Thread(target=_stop_player, daemon=True).start()
-        else:
-            self.finish_eject()
-
-    def finish_eject(self):
 
         if self.ac: 
             self.play_pause_button.setText("⏯️ Lire")
-        
+
         self.progress_slider.setValue(0)
         self.progress_slider.setEnabled(False)
 
@@ -413,6 +398,18 @@ class VLCPlayerWidget(QWidget):
         self.update_video_name()
 
         self.enable_load.emit(False)
+
+        if(use_stop):
+            def _stop_player():
+                try:
+                    self.player.stop()
+                except Exception:
+                    pass
+
+            threading.Thread(target=_stop_player, daemon=True).start()
+        else:
+            self.player.set_media(None)
+
 
     def restart_video(self):
         self.player.stop()
