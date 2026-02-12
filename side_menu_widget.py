@@ -181,7 +181,7 @@ class SideMenuWidget(QDockWidget):
         frame = self.time_manager.m_to_frame(current_time)
 
         for seg in self.display.stock_button:
-            if seg["frame1"] <= frame <= seg["frame2"]:
+            if round(seg["time"]) <= round(current_time) < round(seg["end"]):
                 seg["rect"].setBrush(QBrush(QColor("red")))
                 self.set_position(seg["id"],go=False)
             else:
@@ -281,7 +281,8 @@ class SideMenuWidget(QDockWidget):
         self.color_button.setStyleSheet("background-color: red; color: white; padding: 5px; border-radius: 5px;") 
         self.color_button.setEnabled(False)
 
-        stock_frames = [btn_data["frame1"] + 10 for btn_data in self.display.stock_button]
+        #stock_frames = [btn_data["frame1"] + 10 for btn_data in self.display.stock_button]
+        stock_frames= [btn_data["frame1"] + (btn_data["frame2"] - btn_data["frame1"]) // 2 for btn_data in self.display.stock_button]
 
         cap = cv2.VideoCapture(self.vlc_widget.path_of_media)
         if not cap.isOpened():
