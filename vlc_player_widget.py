@@ -103,6 +103,8 @@ class VLCPlayerWidget(QWidget):
 
         self.full_screen=False
 
+        self.estimated_time = None  # temps estimé après avance frame par frame
+
     def display(self,visible):
         self.video_name_label.setVisible(visible)
         self.toggle_layout_visibility(self.button_layout,visible)
@@ -156,6 +158,9 @@ class VLCPlayerWidget(QWidget):
 
         self.move_front_shortcut = QShortcut(QKeySequence("Right"), self)
         self.move_front_shortcut.activated.connect(self.move_front)
+
+        self.move_front_one_frame_shortcut = QShortcut(QKeySequence("E"), self)
+        self.move_front_one_frame_shortcut.activated.connect(self.move_front_one_frame)
 
 
     def create_window_time(self, parent_layout):
@@ -226,10 +231,40 @@ class VLCPlayerWidget(QWidget):
         self.play_video()
 
     def move_back(self):
-        self.player.set_time(self.player.get_time()-5000)
-
+        self.player.set_time(self.get_current_time()-5000)
+        
     def move_front(self):
-        self.player.set_time(self.player.get_time()+5000)
+        self.player.set_time(self.get_current_time()+5000)
+
+    def move_front_one_frame(self):
+        if self.media is None:
+            return
+        
+        if self.player.is_playing():
+            self.pause_video()
+
+        try:
+            # get_time() n'est pas mis à jour immédiatement après next_frame(),
+            # on stocke un temps estimé que update_ui() utilisera
+            self.player.next_frame()
+
+            frame_duration_ms = 1000.0 / self.fps
+
+            # si on a deja un temps estimé, on part de celui-ci pour éviter d'avoir un décalage, sinon on part du temps actuel du player
+            vlc_time = self.player.get_time()
+            estimated_time = self.estimated_time if self.estimated_time is not None else 0
+            current_time = max(vlc_time, estimated_time)
+
+            total_time = self.player.get_length()
+
+            if total_time > 0: # ne pas depasser la durée totale de la vidéo
+                self.estimated_time = min(current_time + int(frame_duration_ms), total_time)
+
+            self.update_ui()
+
+            return
+        except Exception:
+            pass    
 
     def full_screen_action(self):
         # Demande le full screen
@@ -248,6 +283,7 @@ class VLCPlayerWidget(QWidget):
     def load_video(self,file_path,suppr_seg=True):
         if file_path:
             duration_ms = None
+            self.estimated_time = None
             try:
                 video = VideoFileClip(file_path)
                 self.fps = video.fps
@@ -289,26 +325,38 @@ class VLCPlayerWidget(QWidget):
                 self.set_position(0)
                 
                 self.update_ui() # update l'ui pour afficher la totale ect
-            
+
+    def get_current_time(self):
+        if self.media is None:
+            return 0
+
+        vlc_time = self.player.get_time()
+        estimated_time = self.estimated_time if self.estimated_time is not None else 0
+        current_time = max(vlc_time, estimated_time)
+
+        return current_time     
     
     def play_video(self):
         self.player.play()
         self.play_pause_button.setText("⏯️ Pause")
 
-    def pause_video(self):
+    def pause_video(self): 
         self.player.set_pause(1)
         self.play_pause_button.setText("⏯️ Lire")
         #self.timer.stop()
 
     def on_slider_clicked(self):
+        self.estimated_time = None
         self.slider_was_playing = self.player.is_playing()
         self.pause_video()
     
     def on_slider_released(self):
+        self.estimated_time = None
         if self.slider_was_playing:
             self.play_video()
 
     def stop_video(self):
+        self.estimated_time = None
         """ Remet la vidéo à 00:00:00 et pause la lecture. """
         self.restart_video()
         self.pause_video()
@@ -340,6 +388,7 @@ class VLCPlayerWidget(QWidget):
         self.player.set_media(None)
         self.path_of_media = None
         self.media = None
+        self.estimated_time = None
 
         self.empty_video_frame()
 
@@ -366,6 +415,7 @@ class VLCPlayerWidget(QWidget):
         self.progress_slider.setEnabled(False)
         self.time_label.setText("00:00:00 / 00:00:00")
         self.time_label.setStyleSheet("color: white;")
+        self.estimated_time = None
         self.load_video(self.path_of_media,False)
 
     def capture_screenshot(self, name="",post_traitement=False,format_capture=False,gamma=1.4):
@@ -375,7 +425,7 @@ class VLCPlayerWidget(QWidget):
 
         file_name = self.name_of_video()
         #timestamp = datetime.now().strftime("%d-%m-%Y_%H-%M-%S")
-        raw_timecode = self.time_manager.m_to_hmsf(self.player.get_time())
+        raw_timecode = self.time_manager.m_to_hmsf(self.get_current_time())
         timecode = self.time_manager.sanitize_timecodename(raw_timecode)
         #framenumber = self.time_manager.m_to_frame(self.player.get_time())
 
@@ -438,9 +488,9 @@ class VLCPlayerWidget(QWidget):
         if self.media is None:
             return
 
-        # Position actuelle et durée totale
-        current_time = self.player.get_time()
         total_time = self.player.get_length()
+
+        current_time = self.get_current_time()
 
         if current_time >= 0 and total_time > 0:
             self.progress_slider.setValue(int((current_time / total_time) * total_time))
@@ -462,7 +512,7 @@ class VLCPlayerWidget(QWidget):
             return
 
         if self.media is not None:
-
+            self.estimated_time = None 
             # décalage à gauche atténué mais toujours présent 
             total_time = float(self.player.get_length())  # en secondes
             new_time = (float(position)) * total_time
@@ -491,6 +541,7 @@ class VLCPlayerWidget(QWidget):
         # Besoin d'avoir un temps normalisé entre 0 et 1 pour set_position, d'où la division par total_time
         total_time = self.player.get_length()
         if total_time > 0 and 0 <= new_time <= total_time:
+            self.estimated_time = None  # reset du temps estimé en cas de changement manuel du timecode
             normalized_time = new_time / total_time
             self.player.set_position(normalized_time) 
             self.update_ui()
