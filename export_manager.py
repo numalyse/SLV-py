@@ -178,7 +178,9 @@ class ExportManager(QWidget):
 
     def get_images(self):
         stock_images = []
-        stock_frames = [btn_data["frame1"] + 10 for btn_data in self.seg.display.stock_button]
+
+        # Milieu de chaque scène
+        stock_frames = [btn_data["frame1"] + (btn_data["frame2"] - btn_data["frame1"]) // 2 for btn_data in self.seg.display.stock_button]
 
         cap = cv2.VideoCapture(self.vlc.path_of_media)
         if not cap.isOpened():
@@ -223,7 +225,9 @@ class ExportManager(QWidget):
             os.makedirs(tagImagesdir_path)
 
             for idx, btn_data in enumerate(self.seg.display.stock_button):
-                time_str = self.time_manager.timecodename(btn_data["time"])
+                # time_str = time code du milieu de la scène 
+                time_str = self.time_manager.frame_to_m(btn_data["frame1"] + (btn_data["frame2"] - btn_data["frame1"]) // 2)
+                time_str = self.time_manager.timecodename(time_str)
                 tagImage_path = os.path.join(tagImagesdir_path, f"TagImage{idx}_{time_str}.png")
                 
                 if idx < len(stock_images):

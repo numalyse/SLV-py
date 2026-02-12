@@ -171,11 +171,14 @@ class SideMenuWidget(QDockWidget):
         if not self.vlc_widget.media:
             return
 
-        current_time = self.vlc_widget.player.get_time()
         self.max_time = self.vlc_widget.player.get_length()
 
         if self.display is None:
             return
+    
+
+        current_time = self.vlc_widget.get_current_time()
+        frame = self.time_manager.m_to_frame(current_time)
 
         for seg in self.display.stock_button:
             if round(seg["time"]) <= round(current_time) < round(seg["end"]):
@@ -183,6 +186,7 @@ class SideMenuWidget(QDockWidget):
                 self.set_position(seg["id"],go=False)
             else:
                 seg["rect"].setBrush(QBrush(seg["color"]))
+        
 
     def get_current_button_data(self):
         """ 
@@ -192,7 +196,10 @@ class SideMenuWidget(QDockWidget):
         if not self.vlc_widget.media:
             return None
 
-        current_time = self.vlc_widget.player.get_time()
+
+        vlc_time = self.vlc_widget.player.get_time()
+        estimated_time = self.vlc_widget.estimated_time if self.vlc_widget.estimated_time is not None else 0
+        current_time = max(vlc_time, estimated_time)
 
         for i in range(len(self.display.stock_button)):
             btn_data = self.display.stock_button[i]
@@ -274,7 +281,8 @@ class SideMenuWidget(QDockWidget):
         self.color_button.setStyleSheet("background-color: red; color: white; padding: 5px; border-radius: 5px;") 
         self.color_button.setEnabled(False)
 
-        stock_frames = [btn_data["frame1"] + 10 for btn_data in self.display.stock_button]
+        #stock_frames = [btn_data["frame1"] + 10 for btn_data in self.display.stock_button]
+        stock_frames= [btn_data["frame1"] + (btn_data["frame2"] - btn_data["frame1"]) // 2 for btn_data in self.display.stock_button]
 
         cap = cv2.VideoCapture(self.vlc_widget.path_of_media)
         if not cap.isOpened():
