@@ -41,7 +41,7 @@ class VLCPlayerWidget(QWidget):
     def __init__(self, parent=None,add_controls=False,add_window_time=True,m=True,c=True):
         super().__init__(parent)
         self.parent_element = parent
-        self.instance = vlc.Instance("--quiet")
+        self.instance = vlc.Instance("--quiet --aout=directsound")
 
         #print(self.instance)
         self.player = self.instance.media_player_new()
