@@ -6,7 +6,7 @@ from vlc_player_widget import VLCPlayerWidget
 from vlc_sync_widget import SyncWidget
 from overlay_grid_widget import OverlayGridWidget 
 from side_menu_widget import SideMenuWidget
-from project_manager import ProjectManager
+from project_manager import ProjectManager, check_project_validity
 from export_manager import ExportManager
 from extract_manager import ExtractManager
 from message_popup import MessagePopUp
@@ -264,7 +264,6 @@ class VLCMainWindow(QMainWindow):
 
         player.display(player.full_screen)
         player.full_screen_button.setVisible(not player.full_screen)
-        player.full_screen_button.setGeometry(10, 10, 100, 30)  # Positionner le bouton en haut à gauche
         player.full_screen = not player.full_screen
         apply_dark_mode(self, player.full_screen)
 
@@ -299,6 +298,13 @@ class VLCMainWindow(QMainWindow):
             project_path = QFileDialog.getExistingDirectory(self, "Sélectionner le dossier du projet à ouvrir",default_dir)
             if project_path :
                 
+                # Vérifie si c'est un projet valide sinon, ne fait rien
+                is_valid = check_project_validity(project_path)
+                if not is_valid:
+                    self.project=None
+                    self.side_menu=None
+                    return
+
                 self.vlc_widget.eject_video(False) # ejecte la vidéo seulement quand on a validé l'ouerture du projet
 
                 #self.recreate_window()
@@ -314,9 +320,10 @@ class VLCMainWindow(QMainWindow):
                 
                 self.project=ProjectManager(self.side_menu,self.vlc_widget)
                 val=self.project.open_project(project_path)
-                if not val :
+                if not val or val is False:
                     self.project=None
                     self.side_menu=None
+                
                 self.save_state=False
 
 
