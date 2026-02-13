@@ -124,12 +124,12 @@ class SideMenuWidget(QDockWidget):
         self.buttons_layout.addWidget(self.add_button)
         self.add_button.setVisible(self.seg_ok)
 
-        self.add_button = NoFocusPushButton("Scinder le plan", self)
-        self.add_button.setStyleSheet("background-color: purple; color: white; padding: 5px; border-radius: 5px;")
-        self.add_button.clicked.connect(self.split_plan)
-        self.add_button.setFixedHeight(40)
-        self.buttons_layout.addWidget(self.add_button)
-        self.add_button.setVisible(self.seg_ok)
+        self.split_button = NoFocusPushButton("Scinder le plan", self)
+        self.split_button.setStyleSheet("background-color: purple; color: white; padding: 5px; border-radius: 5px;")
+        self.split_button.clicked.connect(self.split_plan)
+        self.split_button.setFixedHeight(40)
+        self.buttons_layout.addWidget(self.split_button)
+        self.split_button.setVisible(self.seg_ok)
 
 
         self.buttons_layout.addStretch()
@@ -480,9 +480,10 @@ class SideMenuWidget(QDockWidget):
             end_time = self.time2.get_time_in_milliseconds()
             frame1 = self.get_frame(new_time)
             frame2 = self.get_frame(end_time)
-            if name and 0<new_time<=self.max_time:
-                self.add_new_button(name=name, time=new_time, end=end_time,frame1=frame1,frame2=frame2)
+            if name and 0<=new_time<=self.max_time:
+                # Appeler adjust_neighbors AVANT d'ajouter le nouveau bouton
                 self.display.adjust_neighbors(new_time,end_time)
+                self.add_new_button(name=name, time=new_time, end=end_time,frame1=frame1,frame2=frame2)
                 dialog.accept()
 
         ok_button.clicked.connect(on_ok)
