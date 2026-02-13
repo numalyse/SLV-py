@@ -457,7 +457,9 @@ class SideMenuWidget(QDockWidget):
         else : # Sinon, on initialise le time editor de fin à 5 secondes du timecode actuel
             self.time2 = TimeEditor(dialog, self.vlc_widget.player.get_length() , self.vlc_widget.player.get_time() + 5000,fps=self.vlc_widget.fps)
             self.time2.timechanged.connect(lambda: self.previewer2.preview_frame(self.time2.get_time_in_milliseconds()))
-            layout.addWidget(self.time2)    
+            layout.addWidget(self.time2)
+
+        self.time.timechanged.connect(lambda: self.change_end_min_time(self.time.get_time_in_milliseconds())) 
 
         self.img2 = QLabel("", dialog)
         self.img2.setAlignment(Qt.AlignCenter)
@@ -476,13 +478,15 @@ class SideMenuWidget(QDockWidget):
 
         # Action du bouton OK
         def on_ok():
+            if self.time.get_time_in_milliseconds() >= self.time2.get_time_in_milliseconds():
+                affichage=MessagePopUp(self, time=-1, titre="Modification impossible", txt="Vérifiez que le timecode de fin se situe après le timecode de début.", type="warning")
+                return
             name = name_input.text().strip()
             new_time = self.time.get_time_in_milliseconds()
             end_time = self.time2.get_time_in_milliseconds()
             frame1 = self.get_frame(new_time)
             frame2 = self.get_frame(end_time)
             if name and 0<=new_time<=self.max_time:
-                # Appeler adjust_neighbors AVANT d'ajouter le nouveau bouton
                 self.display.adjust_neighbors(new_time,end_time)
                 self.add_new_button(name=name, time=new_time, end=end_time,frame1=frame1,frame2=frame2)
                 dialog.accept()
@@ -491,6 +495,10 @@ class SideMenuWidget(QDockWidget):
         cancel_button.clicked.connect(dialog.reject)
 
         dialog.exec()
+
+    def change_end_min_time(self, min_time):
+        self.time2.on_new_min_value(min_time)
+        self.previewer2.preview_frame(self.time2.get_time_in_milliseconds())
 
     def split_plan(self, button):
         print("split plan")
