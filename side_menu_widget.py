@@ -481,9 +481,10 @@ class SideMenuWidget(QDockWidget):
             end_time = self.time2.get_time_in_milliseconds()
             frame1 = self.get_frame(new_time)
             frame2 = self.get_frame(end_time)
-            if name and 0<new_time<=self.max_time:
-                self.add_new_button(name=name, time=new_time, end=end_time,frame1=frame1,frame2=frame2)
+            if name and 0<=new_time<=self.max_time:
+                # Appeler adjust_neighbors AVANT d'ajouter le nouveau bouton
                 self.display.adjust_neighbors(new_time,end_time)
+                self.add_new_button(name=name, time=new_time, end=end_time,frame1=frame1,frame2=frame2)
                 dialog.accept()
 
         ok_button.clicked.connect(on_ok)

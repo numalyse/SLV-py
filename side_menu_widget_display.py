@@ -399,6 +399,10 @@ class SideMenuWidgetDisplay(QDockWidget):
         tab_suppr = []
         
         for btn_data in self.stock_button:
+            # Ignorer le bouton qui a exactement les mêmes bornes que le nouveau bouton
+            if btn_data["time"] == new_time and btn_data["end"] == new_end_time:
+                continue
+                
             # Cas de chevauchement complet : le nouveau bouton est au milieu d'un bouton existant
             if btn_data["time"] < new_time and btn_data["end"] > new_end_time:
                 # On conserve la partie avant en modifiant la fin du bouton existant
