@@ -260,8 +260,14 @@ class TimeEditor(QWidget):
         Décrémente le nombre de frames de 1. Si aucune frame n'est présente, la seconde est diminuée.
         """
         new_time = self.time - self.tf * amount
-        if new_time < 0:
-            new_time = 0
+        if new_time < self.min_time:
+            new_time = self.min_time
         self.set_time(new_time)
 
         self.timechanged.emit()
+
+    def on_new_min_value(self, value):
+        self.min_time = value
+        if self.time < value:
+            self.set_time(value)
+            self.on_plus_frames()
