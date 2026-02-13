@@ -358,24 +358,41 @@ class SideMenuWidget(QDockWidget):
 
     def delate_button_prec(self, button):
         time, end, frame1, frame2 = self.delate_button(button) 
-
+        closest_precedent = None
+        min_diff = float('inf')
         for btn_data in self.display.stock_button:
-            if btn_data["frame2"] == frame1-1: # vérifie si la fin d'une séquence correspond au frame juste avant le début de la séquence supprimée
-                btn_data["end"] = end
-                self.change_rect(btn_data["rect"],btn_data["time"],end)
-                btn_data["frame2"] = frame2
-                self.display.change_label_time(btn_data["label"], btn_data["time"], btn_data["end"])
+            if btn_data["end"] <= time : # vérifie si la fin d'une séquence correspond au frame juste avant le début de la séquence supprimée
+                diff = time - btn_data["end"]
+                if diff < min_diff:
+                    min_diff = diff
+                    closest_precedent = btn_data
+
+        if closest_precedent is not None:
+            closest_precedent["end"] = end
+            self.change_rect(closest_precedent["rect"], closest_precedent["time"], end)
+            closest_precedent["frame2"] = frame2
+            self.display.change_label_time(closest_precedent["label"], closest_precedent["time"], closest_precedent["end"])
 
         self.recalc_all_buttons()
 
     def delate_button_suiv(self, button):
         time, end, frame1, frame2 = self.delate_button(button)
+        closest_suivant = None
+        min_diff = float('inf')
+
         for btn_data in self.display.stock_button:
-            if btn_data["frame1"] == frame2+1: # vérifie si le début d'une séquence correspond au frame juste après la fin de la séquence supprimée
-                btn_data["time"] = time
-                self.change_rect(btn_data["rect"],time,btn_data["end"])
-                btn_data["frame1"] = frame1
-                self.display.change_label_time(btn_data["label"], btn_data["time"], btn_data["end"])
+            if btn_data["time"] >= end : # vérifie si le début d'une séquence correspond au frame juste après la fin de la séquence supprimée
+                diff = btn_data["time"] - end
+                if diff < min_diff:
+                    min_diff = diff
+                    closest_suivant = btn_data
+                    
+        if closest_suivant is not None:
+            closest_suivant["time"] = time
+            self.change_rect(closest_suivant["rect"], time, closest_suivant["end"])
+            closest_suivant["frame1"] = frame1
+            self.display.change_label_time(closest_suivant["label"], closest_suivant["time"], closest_suivant["end"])
+
         self.recalc_all_buttons()
 
     def recalc_all_buttons(self):
