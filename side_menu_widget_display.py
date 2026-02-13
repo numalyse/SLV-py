@@ -1,4 +1,4 @@
-from PySide6.QtWidgets import QWidget, QVBoxLayout, QPushButton, QMenu, QInputDialog, QScrollArea, QDockWidget, QLabel, QDialog, QLineEdit, QSlider, QHBoxLayout, QSpinBox, QTextEdit, QFrame, QApplication
+from PySide6.QtWidgets import QWidget, QVBoxLayout, QPushButton, QMenu, QInputDialog, QScrollArea, QDockWidget, QLabel, QDialog, QLineEdit, QSlider, QHBoxLayout, QSpinBox, QTextEdit, QFrame, QApplication, QSizePolicy
 from PySide6.QtGui import QAction
 from PySide6.QtCore import Qt, QTimer, Signal, QEvent
 
@@ -80,7 +80,7 @@ class SideMenuWidgetDisplay(QDockWidget):
         self.reorganize_buttons()
 
 
-    #fonction de tri appeler après ajout de bouton pour un affichage logique
+    #fonction de tri appelée après ajout de bouton pour un affichage logique
     def reorganize_buttons(self):
         for i in reversed(range(self.layout.count())):
             item = self.layout.itemAt(i)
@@ -112,9 +112,18 @@ class SideMenuWidgetDisplay(QDockWidget):
             cpt = len(self.stock_button)
             name = "Plan " + f"{cpt+1}"
 
+        # Affichage numérotation des plans
+        numbering_name = f"[Plan n°{len(self.stock_button) + 1}]"
+        frame_name = QLabel(numbering_name, self)
+        frame_name.setAlignment(Qt.AlignCenter)
+        frame_name.setStyleSheet("border: none; background: transparent;")
+        frame_name.adjustSize()
+
+
         # Création du cadre pour regrouper le bouton et ses éléments associés
         frame = QFrame(self)
         frame.setStyleSheet("border: 1px solid gray; padding: 5px; border-radius: 5px;")
+        frame.setSizePolicy(QSizePolicy.Preferred, QSizePolicy.Fixed)
         frame_layout = QVBoxLayout(frame)
 
         # Création du bouton
@@ -136,6 +145,7 @@ class SideMenuWidgetDisplay(QDockWidget):
 
         time_label.setFixedHeight(50)
 
+        frame_layout.addWidget(frame_name)
         frame_layout.addWidget(button)
         frame_layout.addWidget(time_label)
 
@@ -325,7 +335,7 @@ class SideMenuWidgetDisplay(QDockWidget):
         self.img1.setAlignment(Qt.AlignCenter)
         layout.addWidget(self.img1)
         self.previewer1 = FramePreviewer(self.img1, self.vlc_widget.fps, self.vlc_widget.path_of_media)
-        self.previewer1.preview_frame(self.time.get_time_in_milliseconds())     
+        self.previewer1.preview_frame(self.time.get_time_in_milliseconds())  
 
         time_label2 = QLabel("Fin :", dialog)
         layout.addWidget(time_label2)
@@ -338,7 +348,9 @@ class SideMenuWidgetDisplay(QDockWidget):
         self.img2.setAlignment(Qt.AlignCenter)
         layout.addWidget(self.img2)
         self.previewer2 = FramePreviewer(self.img2, self.vlc_widget.fps, self.vlc_widget.path_of_media)
-        self.previewer2.preview_frame(self.time2.get_time_in_milliseconds())       
+        self.previewer2.preview_frame(self.time2.get_time_in_milliseconds())
+
+        self.time.timechanged.connect(lambda: self.change_end_min_time(self.time.get_time_in_milliseconds()))
 
         # Boutons OK et Annuler
         button_layout = QHBoxLayout()
@@ -351,6 +363,9 @@ class SideMenuWidgetDisplay(QDockWidget):
 
         # Action du bouton OK
         def on_ok():
+            if self.time.get_time_in_milliseconds() >= self.time2.get_time_in_milliseconds():
+                affichage=MessagePopUp(self, time=-1, titre="Modification impossible", txt="Vérifiez que le timecode de fin se situe après le timecode de début.", type="warning")
+                return
             new_time = self.time.get_time_in_milliseconds()
             end_time = self.time2.get_time_in_milliseconds()
             for btn_data in self.stock_button:
@@ -370,6 +385,9 @@ class SideMenuWidgetDisplay(QDockWidget):
 
         dialog.exec()
 
+    def change_end_min_time(self, min_time):
+        self.time2.on_new_min_value(min_time)
+        self.previewer2.preview_frame(self.time2.get_time_in_milliseconds())
 
     def change_label_time(self,label,new_time,end_time):
         new_label ="Début : "+self.time_manager.m_to_hmsf(new_time)+" / Fin : "+self.time_manager.m_to_hmsf(end_time)+ " \nDurée : "+self.time_manager.m_to_hmsf(end_time-new_time)

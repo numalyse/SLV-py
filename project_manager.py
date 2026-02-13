@@ -137,6 +137,7 @@ class ProjectManager:
                 print(f"Vidéo chargée : {video_path}")
             else:
                 return False
+            
             self.load_buttons(project_data.get("segmentation", []))
 
         except Exception as e:
@@ -167,3 +168,29 @@ class ProjectManager:
             for note_text in notes:
                 self.seg.display.add_note(button, note_text)
 
+def check_project_validity(project_path):
+
+        project_path = project_path
+
+        project_dir = os.path.splitext(project_path)[0] 
+        project_name = os.path.basename(project_dir)
+        
+        save_file_path = os.path.join(project_path, f"{project_name}.json")
+
+        if not os.path.isfile(save_file_path):
+            print("Erreur : Fichier de projet introuvable !")
+            return False
+
+        try:
+            with open(save_file_path, "r", encoding="utf-8") as f:project_data = json.load(f)
+            video_path = os.path.join(project_path,project_data.get("video"))
+            if video_path and os.path.isfile(video_path):
+                print(f"Vidéo chargée : {video_path}")
+            else:
+                return False
+
+        except Exception as e:
+            print(f"Erreur lors de l'ouverture du projet : {e}")
+            return False
+        
+        return True
