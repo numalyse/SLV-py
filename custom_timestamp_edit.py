@@ -7,6 +7,7 @@ class CustomTimestampEdit(QWidget):
     focus_out = Signal()
     value_changed = Signal()
     edit_finished = Signal()
+    is_focused = False
 
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -45,21 +46,31 @@ class CustomTimestampEdit(QWidget):
             if event.type() == QEvent.FocusIn:
                 self.focus_in.emit()
                 self.ok_button.show()
-                
+                self.is_focused = True
                 self.ok_button_spacer.changeSize(0, 0)
                 self.layout().invalidate()
                 return False
             
             # Quand le timestamp perd le focus
             elif event.type() == QEvent.FocusOut:
-                self.focus_out.emit()
-                self.ok_button.hide()
-                self.ok_button_spacer.changeSize(40, 0)
-                self.layout().invalidate()
-                self.edit_finished.emit()
+                self.finish_edit()
                 return False
             
+            elif event.type() == QEvent.KeyPress:
+                if event.key() in (Qt.Key_Enter, Qt.Key_Return):
+                    self.finish_edit()
+                    self.timestamp_edit.clearFocus()
+                    return True
+            
         return super().eventFilter(obj, event)
+    
+    def finish_edit(self):
+        self.focus_out.emit()
+        self.ok_button.hide()
+        self.is_focused = False
+        self.ok_button_spacer.changeSize(40, 0)
+        self.layout().invalidate()
+        self.edit_finished.emit()
 
     def set_text(self, text):
         self.timestamp_edit.setText(text)
@@ -72,5 +83,3 @@ class CustomTimestampEdit(QWidget):
 
     def on_button_clicked(self):
         self.edit_finished.emit()
-
-    # TODO : ajouter une validation et un formattage, ajouter event bouton Entrée
