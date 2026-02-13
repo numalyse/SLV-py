@@ -526,9 +526,17 @@ class SideMenuWidget(QDockWidget):
         current_time = self.vlc_widget.get_current_time()
         current_frame = self.time_manager.m_to_frame(current_time)
 
+        # Empeche de splitter si on est exactement au début ou à la fin d'un plan
+        # (ne pas avoir de plan de taille 0 par exemple)
+        if current_time == button_to_split["time"] or current_time == button_to_split["end"]:
+            return 
+
         self.add_new_button(name="Plan", time=current_time, end=button_to_split["end"],frame1=current_frame,frame2=button_to_split["frame2"])
+        
+        
         button_to_split["frame2"] = current_frame-1
         button_to_split["end"] = self.time_manager.frame_to_m(current_frame-1)
+        
         self.display.change_label_time(button_to_split["label"], button_to_split["time"], button_to_split["end"])
 
         self.display.reorganize_buttons()
