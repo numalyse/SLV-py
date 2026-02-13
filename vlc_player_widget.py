@@ -627,3 +627,9 @@ class VLCPlayerWidget(QWidget):
         #print("Taille :",self.progress_slider.width())
         return self.progress_slider.width()
 
+    def get_number_of_frames(self):
+        duration_ms = self.player.get_length()
+        if duration_ms <= 0:
+            return 0
+        total_frames = self.time_manager.m_to_frame(duration_ms)
+        return total_frames
