@@ -1,5 +1,5 @@
 from PySide6.QtWidgets import (QWidget, QVBoxLayout, QPushButton, QMenu, QInputDialog,
-    QScrollArea, QDockWidget, QLabel, QDialog, QLineEdit, QSlider, QHBoxLayout,
+    QScrollArea, QDockWidget, QLabel, QDialog, QLineEdit, QSlider, QHBoxLayout, QMessageBox,
     QSpinBox, QTextEdit, QFrame, QSizePolicy, QGraphicsView, QGraphicsScene, QGraphicsRectItem,QGraphicsItem)
 from PySide6.QtGui import QAction, QBrush, QColor, QPen, QKeySequence, QShortcut, QPalette
 from PySide6.QtCore import Qt, QTimer, Signal, QEvent, QRectF, QCoreApplication
@@ -97,39 +97,35 @@ class SideMenuWidget(QDockWidget):
         # --- Zone inférieure : Timeline zoomable ---
         self.buttons_layout = QHBoxLayout()
         self.buttons_layout.setSpacing(0)
-        self.seg_ok = False
 
-        if start:
-            self.seg_button = NoFocusPushButton("Segmentation Auto", self)
-            self.seg_button.setStyleSheet("background-color: green; color: white; padding: 5px; border-radius: 5px;")
-            self.seg_button.clicked.connect(self.seg_action)
-            self.seg_button.setFixedHeight(40)
-            self.seg_button.setFocusPolicy(Qt.NoFocus)
-            self.buttons_layout.addWidget(self.seg_button)
-        else:
-            self.seg_ok = True
-            self.create_keyboard_shortcuts()
+        self.create_keyboard_shortcuts()
+
+        self.seg_button = NoFocusPushButton("Segmentation Auto", self)
+        self.seg_button.setStyleSheet("background-color: green; color: white; padding: 5px; border-radius: 5px;")
+        self.seg_button.clicked.connect(self.seg_action)
+        # ajouter un signal pour désactiver les autres boutons pendant la segmentation
+        
+        self.seg_button.setFixedHeight(40)
+        self.seg_button.setFocusPolicy(Qt.NoFocus)
+        self.buttons_layout.addWidget(self.seg_button)
 
         self.color_button = NoFocusPushButton("Calcul Couleur", self)
         self.color_button.setStyleSheet("background-color: blue; color: white; padding: 5px; border-radius: 5px;")
         self.color_button.clicked.connect(self.calcul_color)
         self.color_button.setFixedHeight(40)
         self.buttons_layout.addWidget(self.color_button)
-        self.color_button.setVisible(self.seg_ok)
 
         self.add_button = NoFocusPushButton("Ajouter Un Plan", self)
         self.add_button.setStyleSheet("background-color: orange; color: white; padding: 5px; border-radius: 5px;")
         self.add_button.clicked.connect(self.add_action)
         self.add_button.setFixedHeight(40)
         self.buttons_layout.addWidget(self.add_button)
-        self.add_button.setVisible(self.seg_ok)
 
-        self.add_button = NoFocusPushButton("Scinder le plan", self)
-        self.add_button.setStyleSheet("background-color: purple; color: white; padding: 5px; border-radius: 5px;")
-        self.add_button.clicked.connect(self.split_plan)
-        self.add_button.setFixedHeight(40)
-        self.buttons_layout.addWidget(self.add_button)
-        self.add_button.setVisible(self.seg_ok)
+        self.split_button = NoFocusPushButton("Scinder le plan", self)
+        self.split_button.setStyleSheet("background-color: purple; color: white; padding: 5px; border-radius: 5px;")
+        self.split_button.clicked.connect(self.split_plan)
+        self.split_button.setFixedHeight(40)
+        self.buttons_layout.addWidget(self.split_button)
 
 
         self.buttons_layout.addStretch()
@@ -144,6 +140,7 @@ class SideMenuWidget(QDockWidget):
         self.timer.start(50)  # actualisation toutes les 50 ms
 
         self.id_creation=0
+
 
     def eventFilter(self, source, event):
         """Gère le zoom horizontal de la timeline avec la molette, sans dézoomer en dessous de l'échelle de base."""
@@ -320,7 +317,11 @@ class SideMenuWidget(QDockWidget):
 
         self.buttons_layout.removeWidget(self.color_button)
         self.color_button.deleteLater()
-        
+
+    def delete_current_segmentation(self):
+        self.display.stock_button.clear()
+        self.timeline_scene.clear()
+    
     #fonction 2
     def delate_button(self, button):
         """Supprime un bouton et son cadre associé."""
@@ -555,17 +556,43 @@ class SideMenuWidget(QDockWidget):
         self.next_button_shortcut.activated.connect(lambda: self.move_to_button(1))
 
     def seg_action(self):
+        # Dialog de confirmation: annule si l'utilisateur clique sur "Annuler"
+        reply = QMessageBox()
+        reply.setIcon(QMessageBox.Question)
+        reply.setWindowTitle('Lancement de la segmentation automatique')
+        reply.setText('Êtes-vous sûr de vouloir lancer la segmentation automatique ?\n'
+                      'Cela va supprimer toutes les données de la segmentation existantes.')
+        reply.setStandardButtons(QMessageBox.Yes | QMessageBox.Cancel)
+        buttonY = reply.button(QMessageBox.Yes)
+        buttonY.setText('Valider')
+        buttonC = reply.button(QMessageBox.Cancel)
+        buttonC.setText('Annuler')
+        result = reply.exec()
+
+        if result != QMessageBox.Yes:
+            return
+
         self.seg_button.setText("Calcul Segmentation en cours ⌛")
         self.seg_button.setStyleSheet("background-color: red; color: white; padding: 5px; border-radius: 5px;") 
         self.seg_button.setEnabled(False)
         self.start_segmentation()
 
+    def toggle_buttons(self, enabled):
+        self.color_button.setEnabled(enabled)
+        self.color_button.setStyleSheet("background-color: blue; color: white; padding: 5px; border-radius: 5px;" if enabled else "background-color: gray; color: white; padding: 5px; border-radius: 5px;")
+        self.add_button.setEnabled(enabled)
+        self.add_button.setStyleSheet("background-color: orange; color: white; padding: 5px; border-radius: 5px;" if enabled else "background-color: gray; color: white; padding: 5px; border-radius: 5px;")
+        self.split_button.setEnabled(enabled)
+        self.split_button.setStyleSheet("background-color: purple; color: white; padding: 5px; border-radius: 5px;" if enabled else "background-color: gray; color: white; padding: 5px; border-radius: 5px;")
+        self.seg_button.setEnabled(enabled)
 
     #segmentation appelé automatiquement à la création plus maintenant
     def start_segmentation(self):
         video_path = self.vlc_widget.path_of_media
 
         color_movie=self.is_movie_color(video_path)
+
+        self.toggle_buttons(False)
 
         self.segmentation_thread = SegmentationThread(video_path,color_movie)
         
@@ -574,13 +601,22 @@ class SideMenuWidget(QDockWidget):
         
         self.segmentation_thread.start()  # Démarrer le thread
 
+
+
     def on_segmentation_complete(self, timecodes):
-        self.seg_ok=True
-        self.buttons_layout.removeWidget(self.seg_button)
-        self.seg_button.deleteLater()
-        self.color_button.setVisible(True)
-        self.add_button.setVisible(True)
+        #self.buttons_layout.removeWidget(self.seg_button)
+        #self.seg_button.deleteLater()
+        #self.color_button.setVisible(True)
+        #self.add_button.setVisible(True)
         #fichier = open("data.txt","w")
+
+        self.seg_button.setStyleSheet("background-color: green; color: white; padding: 5px; border-radius: 5px;")
+        self.seg_button.setText("Segmentation Auto")
+        self.seg_button.setEnabled(True)
+
+        # supprimer les anciens plans
+        self.delete_current_segmentation()
+
         for time in timecodes:
             self.add_new_button(time=time[0],end=time[1],frame1=time[2],frame2=time[3])
             #print(f"{time[0]}   {time[1]}")
@@ -589,6 +625,8 @@ class SideMenuWidget(QDockWidget):
 
         if self.parent.project :
             print("oui")
+
+        self.toggle_buttons(True)
 
         print("Segmentation terminée en arrière-plan.")
         self.segmentation_done.emit(True)

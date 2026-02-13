@@ -593,6 +593,16 @@ class VLCMainWindow(QMainWindow):
             #self.export_button.setEnabled(True)
             self.side_menu.segmentation_done.connect(self.export_button.setEnabled)
             self.side_menu.segmentation_done.connect(self.aug_mode_action.setEnabled)
+
+            # Supprime ceus deja présent par précaution
+            for btn_data in self.side_menu.display.stock_button:
+                self.delate_button(btn_data["button"])
+                
+            # Ajoute un bouton qui fait la taille de la vidéo
+            video_length = self.vlc_widget.player.get_length()
+            last_frame = self.vlc_widget.get_number_of_frames()
+            self.side_menu.add_new_button( "Plan 1", 0, video_length, 0, last_frame)
+
             self.add_quit_button(sync=False)
         else:
             val=not self.side_menu.isVisible()
