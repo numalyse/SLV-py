@@ -56,6 +56,7 @@ class ExtractManager(QWidget):
         self.end_time = TimeEditor(dialog, self.vlc.player.get_length(), self.vlc.player.get_time() + 10000, fps=self.vlc.fps, min_time=self.start_time.time)
         self.end_time.timechanged.connect(lambda: self.previewer2.preview_frame(self.end_time.get_time_in_milliseconds()))
         self.end_time.timechanged.connect(lambda: setattr(self.end_time, 'min_time', self.start_time.time)) # Changer pour une fct de TimeEditor pour mettre à jour
+        self.start_time.timechanged.connect(lambda: self.change_end_min_time(self.start_time.get_time_in_milliseconds()))
 
         self.img2 = QLabel("", dialog)
         self.img2.setAlignment(Qt.AlignCenter)
@@ -96,6 +97,9 @@ class ExtractManager(QWidget):
         layout.addLayout(button_layout)
 
         def on_ok():
+            if self.start_time.get_time_in_milliseconds() >= self.end_time.get_time_in_milliseconds():
+                affichage=MessagePopUp(self, time=-1, titre="Modification impossible", txt="Vérifiez que le timecode de fin se situe après le timecode de début.", type="warning")
+                return
             try:
                 deb = self.start_time.get_time_in_milliseconds()
                 fin = self.end_time.get_time_in_milliseconds()
@@ -115,6 +119,10 @@ class ExtractManager(QWidget):
         ok_button.clicked.connect(on_ok)
         cancel_button.clicked.connect(dialog.reject)
         dialog.exec()
+
+    def change_end_min_time(self, min_time):
+        self.end_time.on_new_min_value(min_time)
+        self.previewer2.preview_frame(self.end_time.get_time_in_milliseconds())
 
     def save_export(self):
         if os.name == "nt":  # Windows
