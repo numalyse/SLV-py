@@ -301,14 +301,10 @@ class VLCMainWindow(QMainWindow):
                 # Vérifie si c'est un projet valide sinon, ne fait rien
                 is_valid = check_project_validity(project_path)
                 if not is_valid:
-                    self.project=None
-                    self.side_menu=None
-
                     msg=MessagePopUp(self,titre="Dossier non valide",txt="Le dossier sélectionné n'est pas un projet valide",type="error", time=-1)
-
                     return
 
-                self.vlc_widget.eject_video(False) # ejecte la vidéo seulement quand on a validé l'ouerture du projet
+                self.vlc_widget.eject_video(False) # ejecte la vidéo seulement quand on a validé l'ouverture du projet
 
                 #self.recreate_window()
 
