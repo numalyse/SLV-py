@@ -228,7 +228,7 @@ class ExportManager(QWidget):
                 # time_str = time code du milieu de la scène 
                 time_str = self.time_manager.frame_to_m(btn_data["frame1"] + (btn_data["frame2"] - btn_data["frame1"]) // 2)
                 time_str = self.time_manager.timecodename(time_str)
-                tagImage_path = os.path.join(tagImagesdir_path, f"TagImage{idx}_{time_str}.png")
+                tagImage_path = os.path.join(tagImagesdir_path, f"TagImage{idx+1}_{time_str}.png")
                 
                 if idx < len(stock_images):
                     tagImage = stock_images[idx]
@@ -284,13 +284,13 @@ class ExportManager(QWidget):
                     end_str = self.time_manager.m_to_hmsf(btn_data["end"] - btn_data["time"])
 
                     # En-tête du plan
-                    fichier.write(f"- {button.text()} -> Début : {time_str} / Durée : {end_str}\n")
+                    fichier.write(f"- [Plan {idx+1}] {button.text()} -> Début : {time_str} / Durée : {end_str}\n")
 
                     # Notes associées (seulement si présentes)
                     for note_widget in self.seg.display.button_notes.get(button, []):
                         note_text = note_widget.toPlainText().strip()
                         if note_text:
-                            fichier.write(f"    • {note_text}\n")
+                            fichier.write(f"{note_text}\n")
 
                     # Ligne vide entre les plans
                     fichier.write("\n")
@@ -319,7 +319,7 @@ class ExportManager(QWidget):
                 button = btn_data["button"]
                 time_str = self.time_manager.m_to_hmsf(btn_data["time"])
                 end_str = self.time_manager.m_to_hmsf(btn_data["end"] - btn_data["time"])
-                elements.append(Paragraph(f"- {button.text()} -> Début : {time_str} / Durée : {end_str}", self.subtitle_style))
+                elements.append(Paragraph(f"- [Plan {idx+1}] {button.text()} -> Début : {time_str} / Durée : {end_str}", self.subtitle_style))
                 
                 for note_widget in self.seg.display.button_notes.get(button, []):
                     note_text = note_widget.toPlainText()
@@ -396,7 +396,7 @@ class ExportManager(QWidget):
                 plan_p = plan_tf.paragraphs[0]
                 plan_p.font.bold = True
                 plan_p.font.color.rgb = PPTXColor.from_string("1F497D")
-                plan_p.text = f"{button.text()} - Début : {time_str} / Durée : {end_str}"
+                plan_p.text = f"[Plan {idx+1}] {button.text()} - Début : {time_str} / Durée : {end_str}"
 
                 if idx < len(stock_images):
                     img = stock_images[idx]
@@ -447,7 +447,7 @@ class ExportManager(QWidget):
                     note_tf.word_wrap = True
 
                     note_p = note_tf.paragraphs[0]
-                    note_p.alignment = PP_ALIGN.JUSTIFY
+                    note_p.alignment = PP_ALIGN.LEFT
                     note_p.font.size = Pt(16)
 
                     note_text = note_widget.toPlainText().strip()
@@ -484,7 +484,7 @@ class ExportManager(QWidget):
                 button = btn_data["button"]
                 time_str = self.time_manager.m_to_hmsf(btn_data["time"])
                 end_str = self.time_manager.m_to_hmsf(btn_data["end"] - btn_data["time"])
-                doc.add_heading(f"- {button.text()} -> Début : {time_str} / Durée : {end_str}", level=2)
+                doc.add_heading(f"- [Plan {idx+1}] {button.text()} -> Début : {time_str} / Durée : {end_str}", level=2)
                 
                 for note_widget in self.seg.display.button_notes.get(button, []):
                     note_text = note_widget.toPlainText()
@@ -599,11 +599,11 @@ class ExportManager(QWidget):
                     button = btn_data["button"]
                     time_str = self.time_manager.m_to_hmsf(btn_data["time"])
                     end_str = self.time_manager.m_to_hmsf(btn_data["end"] - btn_data["time"])
-                    txt = button.text()
+                    txt = f"[Plan {self.seg.display.stock_button.index(btn_data)+1}] {button.text()}"
                     txt2 = f"Debut : {time_str} / Duree : {end_str}"
                     txt3 = [note_widget.toPlainText() for note_widget in self.seg.display.button_notes.get(button, [])]
                     height, width, _ = frame.shape
-                    self.write_text_horizontal_on_video(frame, txt, txt2, txt3, width)
+                    self.write_text_horizontal_on_video2(frame, txt, txt2, txt3, width)
                 out.write(frame)
                 cpt += 1
 
@@ -652,7 +652,7 @@ class ExportManager(QWidget):
             print(f"Erreur pendant l'export vidéo : {e}")
 
     def write_text_horizontal_on_video(self, frame, txt, txt2, txt3, max_width, line_spacing=24):
-        final_txt = txt + " - " + txt2
+        final_txt = txt + " - " + txt2 + "\n"
         for text in txt3:
             lines = text.split("\n")
             final_txt += " - " + " / ".join(line.replace("\t", "   ") for line in lines)
@@ -671,6 +671,33 @@ class ExportManager(QWidget):
             cv2.putText(frame, line, (x, y), font, font_scale, (0, 0, 0), thickness_outline, cv2.LINE_AA)
             cv2.putText(frame, line, (x, y), font, font_scale, (255, 255, 255), thickness_text, cv2.LINE_AA)
             y += line_spacing
+
+    def write_text_horizontal_on_video2(self, frame, txt, txt2, txt3, max_width, line_spacing=24):
+        font_scale = 0.7
+        thickness_outline = 4
+        thickness_text = 1
+        font = cv2.FONT_HERSHEY_SIMPLEX
+
+        char_size = cv2.getTextSize("A", font, font_scale, thickness_text)[0][0]
+        max_chars_per_line = (max_width + 50) // char_size
+
+        lines_to_draw = [txt + " - " + txt2]
+
+        for text in txt3:
+            for subline in text.split("\n"):
+                processed_line = subline.replace("\t", "   ")
+                lines_to_draw.append(processed_line)
+
+        wrapped_lines = []
+        for line in lines_to_draw:
+            wrapped_lines.extend(textwrap.wrap(line, width=max_chars_per_line))
+
+        x, y = 50, 30
+        for line in wrapped_lines:
+            cv2.putText(frame, line, (x, y), font, font_scale, (0, 0, 0), thickness_outline, cv2.LINE_AA)
+            cv2.putText(frame, line, (x, y), font, font_scale, (255, 255, 255), thickness_text, cv2.LINE_AA)
+            y += line_spacing
+
 
     def write_text_on_video(self, frame, txt, txt2, txt3, decalage):
         cv2.putText(frame, txt, (50, decalage + 50), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 0), 5, cv2.LINE_AA)

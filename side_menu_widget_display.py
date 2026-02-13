@@ -1,4 +1,4 @@
-from PySide6.QtWidgets import QWidget, QVBoxLayout, QPushButton, QMenu, QInputDialog, QScrollArea, QDockWidget, QLabel, QDialog, QLineEdit, QSlider, QHBoxLayout, QSpinBox, QTextEdit, QFrame, QApplication
+from PySide6.QtWidgets import QWidget, QVBoxLayout, QPushButton, QMenu, QInputDialog, QScrollArea, QDockWidget, QLabel, QDialog, QLineEdit, QSlider, QHBoxLayout, QSpinBox, QTextEdit, QFrame, QApplication, QSizePolicy
 from PySide6.QtGui import QAction
 from PySide6.QtCore import Qt, QTimer, Signal, QEvent
 
@@ -80,7 +80,7 @@ class SideMenuWidgetDisplay(QDockWidget):
         self.reorganize_buttons()
 
 
-    #fonction de tri appeler après ajout de bouton pour un affichage logique
+    #fonction de tri appelée après ajout de bouton pour un affichage logique
     def reorganize_buttons(self):
         for i in reversed(range(self.layout.count())):
             item = self.layout.itemAt(i)
@@ -112,9 +112,18 @@ class SideMenuWidgetDisplay(QDockWidget):
             cpt = len(self.stock_button)
             name = "Plan " + f"{cpt+1}"
 
+        # Affichage numérotation des plans
+        numbering_name = f"[Plan n°{len(self.stock_button) + 1}]"
+        frame_name = QLabel(numbering_name, self)
+        frame_name.setAlignment(Qt.AlignCenter)
+        frame_name.setStyleSheet("border: none; background: transparent;")
+        frame_name.adjustSize()
+
+
         # Création du cadre pour regrouper le bouton et ses éléments associés
         frame = QFrame(self)
         frame.setStyleSheet("border: 1px solid gray; padding: 5px; border-radius: 5px;")
+        frame.setSizePolicy(QSizePolicy.Preferred, QSizePolicy.Fixed)
         frame_layout = QVBoxLayout(frame)
 
         # Création du bouton
@@ -136,6 +145,7 @@ class SideMenuWidgetDisplay(QDockWidget):
 
         time_label.setFixedHeight(50)
 
+        frame_layout.addWidget(frame_name)
         frame_layout.addWidget(button)
         frame_layout.addWidget(time_label)
 
