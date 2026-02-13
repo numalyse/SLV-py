@@ -280,9 +280,11 @@ class SideMenuWidget(QDockWidget):
         return max((time/self.max_time)*self.length,1)
 
     def calcul_color(self):
+        self.toggle_buttons(False)
+
         self.color_button.setText("Calcul Couleur en cours ⌛")
         self.color_button.setStyleSheet("background-color: red; color: white; padding: 5px; border-radius: 5px;") 
-        self.color_button.setEnabled(False)
+
 
         #stock_frames = [btn_data["frame1"] + 10 for btn_data in self.display.stock_button]
         stock_frames= [btn_data["frame1"] + (btn_data["frame2"] - btn_data["frame1"]) // 2 for btn_data in self.display.stock_button]
@@ -315,8 +317,11 @@ class SideMenuWidget(QDockWidget):
             frame_idx += 1
         cap.release()
 
-        self.buttons_layout.removeWidget(self.color_button)
-        self.color_button.deleteLater()
+        self.toggle_buttons(True)
+        self.color_button.setStyleSheet("background-color: blue; color: white; padding: 5px; border-radius: 5px;")
+        self.color_button.setText("Calcul Couleur")
+        self.color_button.setEnabled(True)
+
 
     def delete_current_segmentation(self):
         self.display.stock_button.clear()
@@ -573,9 +578,11 @@ class SideMenuWidget(QDockWidget):
         if result != QMessageBox.Yes:
             return
 
+        self.toggle_buttons(False)
+
         self.seg_button.setText("Calcul Segmentation en cours ⌛")
         self.seg_button.setStyleSheet("background-color: red; color: white; padding: 5px; border-radius: 5px;") 
-        self.seg_button.setEnabled(False)
+        
         self.start_segmentation()
 
     def toggle_buttons(self, enabled):
@@ -586,14 +593,13 @@ class SideMenuWidget(QDockWidget):
         self.split_button.setEnabled(enabled)
         self.split_button.setStyleSheet("background-color: purple; color: white; padding: 5px; border-radius: 5px;" if enabled else "background-color: gray; color: white; padding: 5px; border-radius: 5px;")
         self.seg_button.setEnabled(enabled)
+        self.seg_button.setStyleSheet("background-color: green; color: white; padding: 5px; border-radius: 5px;" if enabled else "background-color: gray; color: white; padding: 5px; border-radius: 5px;")
 
     #segmentation appelé automatiquement à la création plus maintenant
     def start_segmentation(self):
         video_path = self.vlc_widget.path_of_media
 
         color_movie=self.is_movie_color(video_path)
-
-        self.toggle_buttons(False)
 
         self.segmentation_thread = SegmentationThread(video_path,color_movie)
         
@@ -611,9 +617,11 @@ class SideMenuWidget(QDockWidget):
         #self.add_button.setVisible(True)
         #fichier = open("data.txt","w")
 
+        self.toggle_buttons(True)
+
         self.seg_button.setStyleSheet("background-color: green; color: white; padding: 5px; border-radius: 5px;")
         self.seg_button.setText("Segmentation Auto")
-        self.seg_button.setEnabled(True)
+
 
         # supprimer les anciens plans
         self.delete_current_segmentation()
@@ -627,7 +635,6 @@ class SideMenuWidget(QDockWidget):
         if self.parent.project :
             print("oui")
 
-        self.toggle_buttons(True)
 
         print("Segmentation terminée en arrière-plan.")
         self.segmentation_done.emit(True)
