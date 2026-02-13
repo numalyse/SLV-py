@@ -107,6 +107,7 @@ class VLCPlayerWidget(QWidget):
         self.full_screen=False
 
         self.estimated_time = None  # temps estimé après avance frame par frame
+        self.setAcceptDrops(True) # Nécessaire pour le drag & drop
 
     def display(self,visible):
         self.video_name_label.setVisible(visible)
@@ -603,7 +604,28 @@ class VLCPlayerWidget(QWidget):
         msg=MessagePopUp(self,txt="Capture vidéo enregistré dans SLV_Content/Captures_Vidéos")
         return capture_path
 
-
+    def dragEnterEvent(self, event):
+        # Accepter les fichiers droppés
+        if self.test_video_drop(event) != None:
+            event.acceptProposedAction()
+        else:
+            event.ignore()
+    
+    def dropEvent(self, event):
+        file_path = self.test_video_drop(event)
+        if file_path != None:
+            self.load_video(file_path)
+    
+    def test_video_drop(self, event):
+        if event.mimeData().hasUrls() or event.mimeData().hasFormat("text/uri-list"):
+            mime_data = event.mimeData()
+            if mime_data.hasUrls():
+                urls = mime_data.urls()
+                for url in urls:
+                    file_path = url.toLocalFile()
+                    if file_path.lower().endswith(('.mp4', '.avi', '.mkv', '.mov', '.m4v')):
+                        return file_path
+        return
 
     def get_subtitles(self):
         descriptions = self.player.video_get_spu_description()

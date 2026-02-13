@@ -89,6 +89,7 @@ class VLCMainWindow(QMainWindow):
         self.image_dock.setWidget(self.image_display_label)
         self.addDockWidget(Qt.RightDockWidgetArea, self.image_dock)
         self.image_dock.setVisible(False)
+        self.setAcceptDrops(True)
 
 
 
@@ -304,28 +305,31 @@ class VLCMainWindow(QMainWindow):
                     self.project=None
                     self.side_menu=None
                     return
+                self.load_project_from_path(project_path)
 
-                self.vlc_widget.eject_video(False) # ejecte la vidéo seulement quand on a validé l'ouerture du projet
+    def load_project_from_path(self, project_path):
+        self.vlc_widget.eject_video(False) # ejecte la vidéo seulement quand on a validé l'ouerture du projet
 
-                #self.recreate_window()
+        #self.recreate_window()
 
-                self.side_menu=SideMenuWidget(self.vlc_widget, self,start=False)
-                self.addDockWidget(Qt.BottomDockWidgetArea, self.side_menu)
-                self.side_menu.display.setVisible(True)
-                self.add_quit_button(sync=False)
-                self.side_menu.length=self.vlc_widget.get_size_of_slider()
-                self.side_menu.change.connect(self.change)
-                self.export_button.setEnabled(True) 
-                self.aug_mode_action.setEnabled(True)     
-                
-                self.project=ProjectManager(self.side_menu,self.vlc_widget)
-                val=self.project.open_project(project_path)
-                if not val or val is False:
-                    self.project=None
-                    self.side_menu=None
-                
-                self.save_state=False
+        self.side_menu=SideMenuWidget(self.vlc_widget, self,start=False)
+        self.addDockWidget(Qt.BottomDockWidgetArea, self.side_menu)
+        self.side_menu.display.setVisible(True)
+        self.add_quit_button(sync=False)
+        self.side_menu.length=self.vlc_widget.get_size_of_slider()
+        self.side_menu.change.connect(self.change)
+        self.export_button.setEnabled(True) 
+        self.aug_mode_action.setEnabled(True)     
+        
+        self.project=ProjectManager(self.side_menu,self.vlc_widget)
+        val=self.project.open_project(project_path)
+        if not val or val is False:
+            self.project=None
+            self.side_menu=None
+        
+        self.save_state=False
 
+    
 
     #load de vidéo
     def load_video_action(self):
@@ -901,3 +905,25 @@ class VLCMainWindow(QMainWindow):
     # def resizeEvent(self, event):
     #     super().resizeEvent(event)
     #     self.overlay_grid.setGeometry(self.vlc_widget.geometry()) 
+
+    def dragEnterEvent(self, event):
+        # Accepter les fichiers droppés
+        print("allo")
+        if event.mimeData().hasUrls() or event.mimeData().hasFormat("text/uri-list"):
+            event.acceptProposedAction()
+        else:
+            event.ignore()
+
+    def dropEvent(self, event):
+        mime_data = event.mimeData()
+        print("allo")
+        if mime_data.hasUrls():
+            print("Has URL ? : ", mime_data.hasUrls())
+            urls = mime_data.urls()
+            for url in urls:
+                project_path = url.toLocalFile()
+                is_valid = check_project_validity(project_path)
+                print("Valide ? : ", is_valid)
+                if is_valid:
+                    self.load_project_from_path(project_path)
+        return super().dropEvent(event)
