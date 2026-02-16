@@ -226,10 +226,19 @@ class SideMenuWidget(QDockWidget):
             if round(btn_data["time"]) <= round(current_time) < round(btn_data["end"]):
                 return btn_data
 
-        return None
+        # Si aucun bouton ne correspond au timecode actuel, retourne le plus proche
+        closest_btn = None
+        min_diff = float('inf')
+        for btn_data in self.display.stock_button:
+            diff = min(abs(btn_data["time"] - current_time), abs(btn_data["end"] - current_time))
+            if diff < min_diff:
+                min_diff = diff
+                closest_btn = btn_data
+
+        return closest_btn
 
     #fonction d'ajout d'une nouveaux bouton
-    def add_new_button(self, name="", time=0, end=0, verif=True, frame1=-1, frame2=-1,color=None,notes=[]):
+    def add_new_button(self, name="", time=0, end=0, verif=True, frame1=-1, frame2=-1,color=None, notes=[]):
         if verif and time >= self.max_time:
             return
 
@@ -253,7 +262,7 @@ class SideMenuWidget(QDockWidget):
         rect.setBrush(QBrush(couleur))
         self.timeline_scene.addItem(rect)
 
-        btn=self.display.add_new_button(btn=self.id_creation,rect=rect,color=couleur,name=name,time=time,end=end,verif=False,frame1=frame1,frame2=frame2) 
+        btn=self.display.add_new_button(btn=self.id_creation,rect=rect,color=couleur,name=name,time=time,end=end,verif=False,frame1=frame1,frame2=frame2, notes=notes) 
 
         if verif:
             self.change.emit(True)

@@ -162,13 +162,8 @@ class ProjectManager:
             notes = button_info.get("notes", [])  # Récupérer les notes
 
             # Créer le bouton
-            button = self.seg.add_new_button(name=name, time=time,end=end, verif=False, frame1=frame1, frame2=frame2,color=couleur)
+            button = self.seg.add_new_button(name=name, time=time,end=end, verif=False, frame1=frame1, frame2=frame2,color=couleur, notes=notes)
 
-            if notes!=[]:
-                for note_text in notes:
-                    self.seg.display.add_note(button, note_text)
-            else:
-                self.seg.display.add_note(button, "")
 
             # Ajouter les notes associées
             # for note_text in notes:
