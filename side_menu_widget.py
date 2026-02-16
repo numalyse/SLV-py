@@ -229,7 +229,7 @@ class SideMenuWidget(QDockWidget):
         return None
 
     #fonction d'ajout d'une nouveaux bouton
-    def add_new_button(self, name="", time=0, end=0, verif=True, frame1=-1, frame2=-1,color=None):
+    def add_new_button(self, name="", time=0, end=0, verif=True, frame1=-1, frame2=-1,color=None,notes=[]):
         if verif and time >= self.max_time:
             return
 
