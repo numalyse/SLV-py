@@ -1,5 +1,6 @@
 from PySide6.QtWidgets import QWidget, QLayout, QLineEdit, QStyle, QPushButton, QHBoxLayout, QSpacerItem, QSizePolicy
 from PySide6.QtCore import Qt, Signal, QEvent
+from time_manager import TimeManager
 
 class CustomTimestampEdit(QWidget):
     
@@ -9,7 +10,7 @@ class CustomTimestampEdit(QWidget):
     edit_finished = Signal()
     is_focused = False
 
-    def __init__(self, parent=None):
+    def __init__(self, parent=None, max_time = 3600000, fps = 25):
         super().__init__(parent)
         self.timestamp_edit = QLineEdit()
         self.ok_button = QPushButton("OK") # peut-être un NoFocusPushButton
@@ -20,6 +21,8 @@ class CustomTimestampEdit(QWidget):
         self.timestamp_edit.setAlignment(Qt.AlignLeft)
         self.timestamp_edit.setFixedWidth(80)
         self.timestamp_edit.setFocusPolicy(Qt.ClickFocus)
+        self.max_time = max_time
+        self.fps = fps
         
         h_layout = QHBoxLayout(self)
         h_layout.setContentsMargins(0, 0, 0, 0)

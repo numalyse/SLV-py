@@ -44,6 +44,18 @@ class TimeManager():
     def frame_to_m(self, frame):
         """Renvoie le temps en millisecondes correspondant à un numéro de frame."""
         return int((frame / self.fps) * 1000)
+    
+    def hmsf_to_m(time_str, fps):
+        tf = 1000/fps
+        try:
+            hours, minutes, seconds_frames = time_str.split(":")
+            seconds, frames = seconds_frames.split("[")
+            frames = int(str(frames).replace("]", ""))
+            new_time = (int(hours)*3600 + int(minutes) * 60 + int(seconds)) * 1000 + tf * frames
+            return new_time
+        except ValueError:
+            print("Format du timecode invalide. Utilisez le format HH:MM:SS[FF].")
+            return  # Si la conversion échoue, on ignore l'entrée
 
     def m_to_frame(self, milliseconds):
         """Renvoie le numéro de frame correspondant à un temps en millisecondes."""
