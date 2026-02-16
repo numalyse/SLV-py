@@ -320,7 +320,7 @@ class VLCMainWindow(QMainWindow):
                 self.load_project_from_path(project_path)
 
     def load_project_from_path(self, project_path):
-        self.vlc_widget.eject_video(False) # ejecte la vidéo seulement quand on a validé l'ouerture du projet
+        self.vlc_widget.eject_video(False) # éjecte la vidéo seulement quand on a validé l'ouerture du projet
 
         #self.recreate_window()
 
@@ -920,22 +920,20 @@ class VLCMainWindow(QMainWindow):
 
     def dragEnterEvent(self, event):
         # Accepter les fichiers droppés
-        print("allo")
         if event.mimeData().hasUrls() or event.mimeData().hasFormat("text/uri-list"):
             event.acceptProposedAction()
         else:
             event.ignore()
 
     def dropEvent(self, event):
+        if self.sync_mode:
+            self.sync_button_use() # Pour désactiver le mode synchronisé avant d'ouvrir le projet
         mime_data = event.mimeData()
-        print("allo")
         if mime_data.hasUrls():
-            print("Has URL ? : ", mime_data.hasUrls())
             urls = mime_data.urls()
             for url in urls:
                 project_path = url.toLocalFile()
                 is_valid = check_project_validity(project_path)
-                print("Valide ? : ", is_valid)
                 if is_valid:
                     self.load_project_from_path(project_path)
         return super().dropEvent(event)
