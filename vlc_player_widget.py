@@ -306,9 +306,11 @@ class VLCPlayerWidget(QWidget):
             self.player.audio_set_mute(self.mute)
 
             self.progress_slider.setEnabled(True)
+            self.line_edit.fps = self.fps
 
             if duration_ms is not None:
                 self.progress_slider.setRange(0, duration_ms)
+                self.line_edit.max_time = duration_ms
             
             if(self.begin):
                 self.player.play()
@@ -542,8 +544,13 @@ class VLCPlayerWidget(QWidget):
         except ValueError:
             print("Format du timecode invalide. Utilisez le format HH:MM:SS[FF].")
             return  # Si la conversion échoue, on ignore l'entrée
-
-        self.set_position_timecode(new_time)
+        
+        bounded_time = max(0, min(new_time, self.line_edit.max_time))
+        if bounded_time != new_time:
+            self.line_edit.blockSignals(True)
+            self.line_edit.set_text(TimeManager.m_to_hmsf(self, bounded_time))
+            self.line_edit.blockSignals(False)
+        self.set_position_timecode(bounded_time)
     
     
     def set_position_timecode(self,new_time):
