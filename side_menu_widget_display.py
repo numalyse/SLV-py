@@ -1,4 +1,4 @@
-from PySide6.QtWidgets import QWidget, QVBoxLayout, QPushButton, QMenu, QInputDialog, QScrollArea, QDockWidget, QLabel, QDialog, QLineEdit, QSlider, QHBoxLayout, QSpinBox, QTextEdit, QFrame, QApplication, QSizePolicy
+from PySide6.QtWidgets import QWidget, QVBoxLayout, QPushButton, QMenu, QInputDialog, QScrollArea, QDockWidget, QLabel, QDialog, QLineEdit, QSlider, QHBoxLayout, QSpinBox, QTextEdit, QFrame, QApplication, QSizePolicy, QFormLayout
 from PySide6.QtGui import QAction
 from PySide6.QtCore import Qt, QTimer, Signal, QEvent
 
@@ -25,10 +25,24 @@ class MyTextEdit(QTextEdit):
     def eventFilter(self, source, event):
         if event.type() == QEvent.FocusOut and source is self:
             new_focus = QApplication.focusWidget()
-            # Ne pas redonner le focus si le nouveau widget est une note
-            if not isinstance(new_focus, MyTextEdit):
+            if not isinstance(new_focus, (MyTextEdit, MyLineEdit)):
                 QTimer.singleShot(0, self.setFocus)
         return super().eventFilter(source, event)
+    
+class MyLineEdit(QLineEdit):
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self.installEventFilter(self)
+
+    def eventFilter(self, source, event):
+        if event.type() == QEvent.FocusOut and source is self:
+            new_focus = QApplication.focusWidget()
+            if not isinstance(new_focus, (MyTextEdit, MyLineEdit)):
+                QTimer.singleShot(0, self.setFocus)
+        return super().eventFilter(source, event)
+
+
+
 
 
 class SideMenuWidgetDisplay(QDockWidget):
@@ -103,10 +117,37 @@ class SideMenuWidgetDisplay(QDockWidget):
         # Réajoute un stretch à la fin
         self.layout.addStretch()
 
+    def info_data_form(self, name="", text="", modifiable=True):
+        background_frame = QFrame(self)
+        background_frame.setAutoFillBackground(True)
+
+        background_frame.setStyleSheet("border: none; background-color: palette(base); padding: 1px;")
+        background_layout= QFormLayout(background_frame)
+
+        name_label = QLabel(name, background_frame)
+        name_label.setAlignment(Qt.AlignLeft)
+        name_label.setStyleSheet("font-weight: bold;")
+        name_input = MyLineEdit(background_frame)
+        name_input.setText(text)
+        name_input.setReadOnly(not modifiable)
+        name_input.setAlignment(Qt.AlignRight)
+
+        background_layout.addRow(name_label, name_input)
+
+        return background_frame
+
     #fonction d'ajout d'une nouveaux bouton
     def add_new_button(self, btn,rect,color,name="", time=0, end=0, verif=True, frame1=-1, frame2=-1):
         if verif and time >= self.max_time:
             return
+
+        # ===== INFOS PLAN sur le volet droit =====
+        # Création du cadre du volet pour regrouper le bouton et ses éléments associés
+        frame = QFrame(self)
+        frame.setStyleSheet("border: 1px solid gray; padding: 5px; border-radius: 5px;")
+        frame.setSizePolicy(QSizePolicy.Preferred, QSizePolicy.Fixed)
+        frame_layout = QVBoxLayout(frame)
+        
 
         if name == "":
             cpt = len(self.stock_button)
@@ -119,22 +160,14 @@ class SideMenuWidgetDisplay(QDockWidget):
         frame_name.setStyleSheet("border: none; background: transparent;")
         frame_name.adjustSize()
 
-
-        # Création du cadre pour regrouper le bouton et ses éléments associés
-        frame = QFrame(self)
-        frame.setStyleSheet("border: 1px solid gray; padding: 5px; border-radius: 5px;")
-        frame.setSizePolicy(QSizePolicy.Preferred, QSizePolicy.Fixed)
-        frame_layout = QVBoxLayout(frame)
-
-        # Création du bouton
+        # Bouton du nom du plan
         button = NoFocusPushButton(name, self)
         button.setStyleSheet("background-color: #666; color: white; padding: 5px; border-radius: 5px;")
         button.setContextMenuPolicy(Qt.CustomContextMenu)
-        button.customContextMenuRequested.connect(lambda pos, btn=button: self.show_context_menu(pos, btn))
+        #button.customContextMenuRequested.connect(lambda pos, btn=button: self.show_context_menu(pos, btn))
+        button.clicked.connect(lambda _, btn=button: self.rename_button(btn))
         button.setFocusPolicy(Qt.NoFocus)
         #button.setFixedSize(180, 25)
-
-        frame.setVisible(False)
 
         # Création du label pour afficher le timecode
         if end == 0:
@@ -145,10 +178,19 @@ class SideMenuWidgetDisplay(QDockWidget):
 
         time_label.setFixedHeight(50)
 
-        frame_layout.addWidget(frame_name)
-        frame_layout.addWidget(button)
-        frame_layout.addWidget(time_label)
+        frame_layout.addWidget(self.info_data_form(name="Numéro du plan", text=numbering_name, modifiable=False))
+        frame_layout.addWidget(self.info_data_form(name="Nom du plan", text=name, modifiable=True))
 
+        frame_layout.addWidget(self.info_data_form(name="Début du plan", text=self.time_manager.m_to_hmsf(time), modifiable=False))
+        frame_layout.addWidget(self.info_data_form(name="Fin du plan", text=self.time_manager.m_to_hmsf(end), modifiable=False))
+        frame_layout.addWidget(self.info_data_form(name="Durée du plan", text=self.time_manager.m_to_hmsf(end - time), modifiable=False))
+
+        #frame_layout.addWidget(frame_name)
+        #frame_layout.addWidget(button)
+        #frame_layout.addWidget(time_label)
+
+        frame.setVisible(False)
+        # ===== FIN INFOS PLAN sur le volet droit =====
 
         # Ajouter le frame à la liste des boutons stockés
         self.stock_button.append({"id":btn,"rect":rect,"color":color,"frame": frame, "button": button, "time": time, "end": end, "label": time_label, "frame1": frame1, "frame2":frame2})
@@ -224,6 +266,29 @@ class SideMenuWidgetDisplay(QDockWidget):
                     btn_data["button"].setText(new_name)
         self.parent.emit_change()
 
+    def rename_button2(self, button):
+        line_edit = QLineEdit(button.text(), self)
+        line_edit.setGeometry(button.geometry())
+        line_edit.setFocus()
+        line_edit.selectAll()
+        line_edit.show()
+
+        button.hide()
+
+        def finish_edit():
+            new_name = line_edit.text().strip()
+            if new_name:
+                button.setText(new_name)
+
+                for btn_data in self.stock_button:
+                    if btn_data["button"] == button:
+                        btn_data["button"].setText(new_name)
+
+            line_edit.deleteLater()
+            button.show()
+            self.parent.emit_change()
+
+        line_edit.editingFinished.connect(finish_edit)
 
     #fonction 3
     def add_note_menu(self, button):
@@ -234,24 +299,38 @@ class SideMenuWidgetDisplay(QDockWidget):
         note_widget = MyTextEdit(self)
         note_widget.setPlainText(text)
         note_widget.setReadOnly(False)
-        note_widget.setStyleSheet("color: gray; font-style: italic;")
-        note_widget.setFixedSize(285, 200)
+        note_widget.setStyleSheet("background-color: palette(base)")
+        #note_widget.setFixedSize(285, 200)
         note_widget.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
-        note_widget.setContextMenuPolicy(Qt.CustomContextMenu)
-        note_widget.customContextMenuRequested.connect(lambda pos: self.show_note_context_menu(note_widget, pos))
+        #note_widget.setContextMenuPolicy(Qt.CustomContextMenu)
+        #note_widget.customContextMenuRequested.connect(lambda pos: self.show_note_context_menu(note_widget, pos))
+
+        note_frame = QFrame(self)
+        note_frame.setFixedSize(285, 200)
+        note_frame.setStyleSheet("border: none; background-color: palette(base);")
+        note_layout = QVBoxLayout(note_frame)
+        note_layout.setContentsMargins(0, 0, 0, 0)
+        note_layout.setSpacing(2)
+
+        note_label = QLabel("Note", note_frame)
+        note_label.setStyleSheet("font-weight: bold;")
+        note_label.setAlignment(Qt.AlignLeft)
+
+        note_layout.addWidget(note_label)
+        note_layout.addWidget(note_widget)
 
         if button not in self.button_notes:
             self.button_notes[button] = []
 
         self.button_notes[button].append(note_widget)
 
-        note_widget.setFocus()
+        #note_widget.setFocus()
 
         # Trouver le `frame` associé au bouton et ajouter la note dedans
         for btn_data in self.stock_button:
             if btn_data["button"] == button:
                 frame_layout = btn_data["frame"].layout()
-                frame_layout.addWidget(note_widget)
+                frame_layout.addWidget(note_frame)
                 break  # On sort de la boucle une fois trouvé
 
         # Détecte si du texte est ajouté
