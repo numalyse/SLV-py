@@ -188,7 +188,22 @@ class SideMenuWidgetDisplay(QDockWidget):
         frame_layout.addWidget(self.info_data_form(name="Début du plan", text=self.time_manager.m_to_hmsf(time), modifiable=False))
         frame_layout.addWidget(self.info_data_form(name="Fin du plan", text=self.time_manager.m_to_hmsf(end), modifiable=False))
         frame_layout.addWidget(self.info_data_form(name="Durée du plan", text=self.time_manager.m_to_hmsf(end - time), modifiable=False))
+        
+        #frame_layout.addWidget(frame_name)
+        #frame_layout.addWidget(button)
+        #frame_layout.addWidget(time_label)
 
+        #frame.setVisible(False)
+
+        # Ajouter le frame à la liste des boutons stockés
+        self.stock_button.append({"id":btn,"rect":rect,"color":color,"frame": frame, "button": button, "time": time, "end": end, "label": time_label, "frame1": frame1, "frame2":frame2})
+
+        # Trier les boutons
+        self.stock_button.sort(key=lambda btn_data: btn_data["time"])
+
+        self.button_notes[button] = []  # Associer une liste vide de notes au bouton
+        self.add_note(button, notes[0] if notes else "") 
+        
         frame_buttons_actions = QFrame(self)
         frame_buttons_actions.setStyleSheet("border: none;")
         frame_buttons_layout = QHBoxLayout(frame_buttons_actions)
@@ -206,26 +221,9 @@ class SideMenuWidgetDisplay(QDockWidget):
         frame_buttons_layout.addWidget(button_modify_timecode)
         
         frame_layout.addWidget(frame_buttons_actions)
-        
-        #frame_layout.addWidget(frame_name)
-        #frame_layout.addWidget(button)
-        #frame_layout.addWidget(time_label)
-
-        #frame.setVisible(False)
-
-        # Ajouter le frame à la liste des boutons stockés
-        self.stock_button.append({"id":btn,"rect":rect,"color":color,"frame": frame, "button": button, "time": time, "end": end, "label": time_label, "frame1": frame1, "frame2":frame2})
-
-        # Trier les boutons
-        self.stock_button.sort(key=lambda btn_data: btn_data["time"])
-
-        self.button_notes[button] = []  # Associer une liste vide de notes au bouton
-        self.add_note(button, notes[0] if notes else "") 
 
         # Réorganiser les boutons dans l'affichage
         self.reorganize_buttons()
-
-
 
         if verif:
             self.segmentation_done.emit(True)
