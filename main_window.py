@@ -284,10 +284,11 @@ class VLCMainWindow(QMainWindow):
     def save_action(self):
         if self.project==None:
             if os.name == "nt":  # Windows
-                default_dir = "C:/"
+                default_dir = self.pref_manager.preferences["save_project_path"]
             else:  # Linux/Mac
-                default_dir = "/"
+                default_dir = self.pref_manager.preferences["save_project_path"]
             file_path, _ = QFileDialog.getSaveFileName(self, "Créer un projet", default_dir, "Projet (*.json)")
+            self.pref_manager.change_preference("save_project_path", file_path)
             if file_path:
                 project_dir = os.path.splitext(file_path)[0] 
                 project_name = os.path.basename(project_dir)
@@ -304,11 +305,14 @@ class VLCMainWindow(QMainWindow):
             if(self.sync_mode):
                 self.sync_button_use()
 
+            self.pref_manager.load_preferences()
+            print(self.pref_manager.preferences)
             if os.name == "nt":  # Windows
-                default_dir = "C:/"
+                default_dir = self.pref_manager.preferences["open_project_path"]
             else:  # Linux/Mac
-                default_dir = "/"
+                default_dir = self.pref_manager.preferences["open_project_path"]
             project_path = QFileDialog.getExistingDirectory(self, "Sélectionner le dossier du projet à ouvrir",default_dir)
+            self.pref_manager.change_preference("open_project_path", project_path)
             if project_path :
                 
                 # Vérifie si c'est un projet valide sinon, ne fait rien
