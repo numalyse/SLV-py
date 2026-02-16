@@ -136,8 +136,8 @@ class SideMenuWidgetDisplay(QDockWidget):
 
         return background_frame
 
-    #fonction d'ajout d'un nouveau bouton
-    def add_new_button(self, btn,rect,color,name="", time=0, end=0, verif=True, frame1=-1, frame2=-1):
+    #fonction d'ajout d'une nouveaux bouton
+    def add_new_button(self, btn,rect,color,name="", time=0, end=0, verif=True, frame1=-1, frame2=-1, notes=[]):
         if verif and time >= self.max_time:
             return
 
@@ -219,10 +219,13 @@ class SideMenuWidgetDisplay(QDockWidget):
         # Trier les boutons
         self.stock_button.sort(key=lambda btn_data: btn_data["time"])
 
+        self.button_notes[button] = []  # Associer une liste vide de notes au bouton
+        self.add_note(button, notes[0] if notes else "") 
+
         # Réorganiser les boutons dans l'affichage
         self.reorganize_buttons()
 
-        self.button_notes[button] = []  # Associer une liste vide de notes au bouton
+
 
         if verif:
             self.segmentation_done.emit(True)
@@ -258,13 +261,14 @@ class SideMenuWidgetDisplay(QDockWidget):
         extract_action.triggered.connect(lambda: self.extract_action(button))
         menu.addAction(extract_action)
 
-        if(time>0):
+        # Vérifie si le plan n'est pas le premier dans la liste pour afficher l'option de concaténer avec le précédent
+        if(not self.is_first_shot(button)):
             delete_action = QAction("Supprimer et concaténer avec le précedent", self)
             delete_action.triggered.connect(lambda: self.parent.delate_button_prec(button))
             menu.addAction(delete_action)
 
-        # Vérifie si la séquence n'est pas la dernière et que sa fin n'est pas à la fin de la vidéo pour proposer l'option de concaténer avec le suivant
-        if (end<self.max_time  and not self.is_last_sequence(button)):
+        # Vérifie si le plan n'est pas le dernier dans la liste pour afficher l'option de concaténer avec le suivant
+        if (not self.is_last_shot(button)):
             delete_action2 = QAction("Supprimer et concaténer avec le suivant", self)
             delete_action2.triggered.connect(lambda: self.parent.delate_button_suiv(button))
             menu.addAction(delete_action2)
@@ -272,8 +276,11 @@ class SideMenuWidgetDisplay(QDockWidget):
         menu.exec_(button.mapToGlobal(pos))
 
     # Retoune True si le bouton correspond à la dernière séquence, sinon False
-    def is_last_sequence(self, button):
+    def is_last_shot(self, button):
         return button == self.stock_button[-1]["button"] if self.stock_button else False
+    
+    def is_first_shot(self, button):
+        return button == self.stock_button[0]["button"] if self.stock_button else False
 
     #fonction 1
     def rename_button(self, button):

@@ -96,7 +96,7 @@ class SideMenuWidget(QDockWidget):
 
         # --- Zone inférieure : Timeline zoomable ---
         self.buttons_layout = QHBoxLayout()
-        self.buttons_layout.setSpacing(0)
+        self.buttons_layout.setSpacing(3)
 
         self.create_keyboard_shortcuts()
 
@@ -127,6 +127,17 @@ class SideMenuWidget(QDockWidget):
         self.split_button.setFixedHeight(40)
         self.buttons_layout.addWidget(self.split_button)
 
+        self.merge_left_button = NoFocusPushButton("< Fusionner", self)
+        self.merge_left_button.setStyleSheet("background-color: tomato ; color: white; padding: 5px; border-radius: 5px;")
+        self.merge_left_button.clicked.connect(lambda: self.delate_button_prec(self.get_current_button_data()["button"]))
+        self.merge_left_button.setFixedHeight(40)
+        self.buttons_layout.addWidget(self.merge_left_button)
+
+        self.merge_right_button = NoFocusPushButton("Fusionner >", self)
+        self.merge_right_button.setStyleSheet("background-color: tomato ; color: white; padding: 5px; border-radius: 5px;")
+        self.merge_right_button.clicked.connect(lambda: self.delate_button_suiv(self.get_current_button_data()["button"]))
+        self.merge_right_button.setFixedHeight(40)
+        self.buttons_layout.addWidget(self.merge_right_button)
 
         self.buttons_layout.addStretch()
         self.main_layout.addLayout(self.buttons_layout)
@@ -182,6 +193,12 @@ class SideMenuWidget(QDockWidget):
 
         current_time = self.vlc_widget.get_current_time()
         frame = self.time_manager.m_to_frame(current_time)
+        left_enabled = not self.display.is_first_shot(self.get_current_button_data()["button"])
+        right_enabled = not self.display.is_last_shot(self.get_current_button_data()["button"])
+        self.merge_left_button.setEnabled(left_enabled)
+        self.merge_left_button.setStyleSheet("background-color: tomato; color: white; padding: 5px; border-radius: 5px;" if left_enabled else "background-color: gray; color: lightgray; padding: 5px; border-radius: 5px;")
+        self.merge_right_button.setEnabled(right_enabled)
+        self.merge_right_button.setStyleSheet("background-color: tomato; color: white; padding: 5px; border-radius: 5px;" if right_enabled else "background-color: gray; color: lightgray; padding: 5px; border-radius: 5px;")
 
         for seg in self.display.stock_button:
             if round(seg["time"]) <= round(current_time) < round(seg["end"]):
@@ -194,7 +211,7 @@ class SideMenuWidget(QDockWidget):
     def get_current_button_data(self):
         """ 
         Retourne les informations du bouton (plan) actuellement actif 
-        (celui qui correspond au timecode actuel), ou None s'il n'y en a pas. 
+        (celui qui correspond au timecode actuel), ou le plus proche du timecode actuel s'il n'y en a pas. 
         """
         if not self.vlc_widget.media:
             return None
@@ -209,10 +226,19 @@ class SideMenuWidget(QDockWidget):
             if round(btn_data["time"]) <= round(current_time) < round(btn_data["end"]):
                 return btn_data
 
-        return None
+        # Si aucun bouton ne correspond au timecode actuel, retourne le plus proche
+        closest_btn = None
+        min_diff = float('inf')
+        for btn_data in self.display.stock_button:
+            diff = min(abs(btn_data["time"] - current_time), abs(btn_data["end"] - current_time))
+            if diff < min_diff:
+                min_diff = diff
+                closest_btn = btn_data
+
+        return closest_btn
 
     #fonction d'ajout d'une nouveaux bouton
-    def add_new_button(self, name="", time=0, end=0, verif=True, frame1=-1, frame2=-1,color=None,notes=[]):
+    def add_new_button(self, name="", time=0, end=0, verif=True, frame1=-1, frame2=-1,color=None, notes=[]):
         if verif and time >= self.max_time:
             return
 
@@ -236,7 +262,7 @@ class SideMenuWidget(QDockWidget):
         rect.setBrush(QBrush(couleur))
         self.timeline_scene.addItem(rect)
 
-        btn=self.display.add_new_button(btn=self.id_creation,rect=rect,color=couleur,name=name,time=time,end=end,verif=False,frame1=frame1,frame2=frame2) 
+        btn=self.display.add_new_button(btn=self.id_creation,rect=rect,color=couleur,name=name,time=time,end=end,verif=False,frame1=frame1,frame2=frame2, notes=notes) 
 
         if verif:
             self.change.emit(True)
@@ -358,24 +384,41 @@ class SideMenuWidget(QDockWidget):
 
     def delate_button_prec(self, button):
         time, end, frame1, frame2 = self.delate_button(button) 
-
+        closest_precedent = None
+        min_diff = float('inf')
         for btn_data in self.display.stock_button:
-            if btn_data["frame2"] == frame1-1: # vérifie si la fin d'une séquence correspond au frame juste avant le début de la séquence supprimée
-                btn_data["end"] = end
-                self.change_rect(btn_data["rect"],btn_data["time"],end)
-                btn_data["frame2"] = frame2
-                self.display.change_label_time(btn_data["label"], btn_data["time"], btn_data["end"])
+            if btn_data["end"] <= time : # vérifie si la fin d'une séquence correspond au frame juste avant le début de la séquence supprimée
+                diff = time - btn_data["end"]
+                if diff < min_diff:
+                    min_diff = diff
+                    closest_precedent = btn_data
+
+        if closest_precedent is not None:
+            closest_precedent["end"] = end
+            self.change_rect(closest_precedent["rect"], closest_precedent["time"], end)
+            closest_precedent["frame2"] = frame2
+            self.display.change_label_time(closest_precedent["label"], closest_precedent["time"], closest_precedent["end"])
 
         self.recalc_all_buttons()
 
     def delate_button_suiv(self, button):
         time, end, frame1, frame2 = self.delate_button(button)
+        closest_suivant = None
+        min_diff = float('inf')
+
         for btn_data in self.display.stock_button:
-            if btn_data["frame1"] == frame2+1: # vérifie si le début d'une séquence correspond au frame juste après la fin de la séquence supprimée
-                btn_data["time"] = time
-                self.change_rect(btn_data["rect"],time,btn_data["end"])
-                btn_data["frame1"] = frame1
-                self.display.change_label_time(btn_data["label"], btn_data["time"], btn_data["end"])
+            if btn_data["time"] >= end : # vérifie si le début d'une séquence correspond au frame juste après la fin de la séquence supprimée
+                diff = btn_data["time"] - end
+                if diff < min_diff:
+                    min_diff = diff
+                    closest_suivant = btn_data
+                    
+        if closest_suivant is not None:
+            closest_suivant["time"] = time
+            self.change_rect(closest_suivant["rect"], time, closest_suivant["end"])
+            closest_suivant["frame1"] = frame1
+            self.display.change_label_time(closest_suivant["label"], closest_suivant["time"], closest_suivant["end"])
+
         self.recalc_all_buttons()
 
     def recalc_all_buttons(self):
@@ -462,7 +505,9 @@ class SideMenuWidget(QDockWidget):
         else : # Sinon, on initialise le time editor de fin à 5 secondes du timecode actuel
             self.time2 = TimeEditor(dialog, self.vlc_widget.player.get_length() , self.vlc_widget.player.get_time() + 5000,fps=self.vlc_widget.fps)
             self.time2.timechanged.connect(lambda: self.previewer2.preview_frame(self.time2.get_time_in_milliseconds()))
-            layout.addWidget(self.time2)    
+            layout.addWidget(self.time2)
+
+        self.time.timechanged.connect(lambda: self.change_end_min_time(self.time.get_time_in_milliseconds())) 
 
         self.img2 = QLabel("", dialog)
         self.img2.setAlignment(Qt.AlignCenter)
@@ -481,13 +526,15 @@ class SideMenuWidget(QDockWidget):
 
         # Action du bouton OK
         def on_ok():
+            if self.time.get_time_in_milliseconds() >= self.time2.get_time_in_milliseconds():
+                affichage=MessagePopUp(self, time=-1, titre="Modification impossible", txt="Vérifiez que le timecode de fin se situe après le timecode de début.", type="warning")
+                return
             name = name_input.text().strip()
             new_time = self.time.get_time_in_milliseconds()
             end_time = self.time2.get_time_in_milliseconds()
             frame1 = self.get_frame(new_time)
             frame2 = self.get_frame(end_time)
             if name and 0<=new_time<=self.max_time:
-                # Appeler adjust_neighbors AVANT d'ajouter le nouveau bouton
                 self.display.adjust_neighbors(new_time,end_time)
                 self.add_new_button(name=name, time=new_time, end=end_time,frame1=frame1,frame2=frame2)
                 dialog.accept()
@@ -496,6 +543,10 @@ class SideMenuWidget(QDockWidget):
         cancel_button.clicked.connect(dialog.reject)
 
         dialog.exec()
+
+    def change_end_min_time(self, min_time):
+        self.time2.on_new_min_value(min_time)
+        self.previewer2.preview_frame(self.time2.get_time_in_milliseconds())
 
     def split_plan(self, button):
         print("split plan")
@@ -586,15 +637,21 @@ class SideMenuWidget(QDockWidget):
         self.start_segmentation()
 
     def toggle_buttons(self, enabled):
+        self.timer.blockSignals(True)
         self.color_button.setEnabled(enabled)
-        self.color_button.setStyleSheet("background-color: blue; color: white; padding: 5px; border-radius: 5px;" if enabled else "background-color: gray; color: white; padding: 5px; border-radius: 5px;")
+        self.color_button.setStyleSheet("background-color: blue; color: white; padding: 5px; border-radius: 5px;" if enabled else "background-color: gray; color: lightgray; padding: 5px; border-radius: 5px;")
         self.add_button.setEnabled(enabled)
-        self.add_button.setStyleSheet("background-color: orange; color: white; padding: 5px; border-radius: 5px;" if enabled else "background-color: gray; color: white; padding: 5px; border-radius: 5px;")
+        self.add_button.setStyleSheet("background-color: orange; color: white; padding: 5px; border-radius: 5px;" if enabled else "background-color: gray; color: lightgray; padding: 5px; border-radius: 5px;")
         self.split_button.setEnabled(enabled)
-        self.split_button.setStyleSheet("background-color: purple; color: white; padding: 5px; border-radius: 5px;" if enabled else "background-color: gray; color: white; padding: 5px; border-radius: 5px;")
+        self.split_button.setStyleSheet("background-color: purple; color: white; padding: 5px; border-radius: 5px;" if enabled else "background-color: gray; color: lightgray; padding: 5px; border-radius: 5px;")
         self.seg_button.setEnabled(enabled)
-        self.seg_button.setStyleSheet("background-color: green; color: white; padding: 5px; border-radius: 5px;" if enabled else "background-color: gray; color: white; padding: 5px; border-radius: 5px;")
-
+        self.seg_button.setStyleSheet("background-color: green; color: white; padding: 5px; border-radius: 5px;" if enabled else "background-color: gray; color: lightgray; padding: 5px; border-radius: 5px;")
+        self.merge_left_button.setEnabled(enabled)
+        self.merge_left_button.setStyleSheet("background-color: tomato; color: white; padding: 5px; border-radius: 5px;" if enabled else "background-color: gray; color: lightgray; padding: 5px; border-radius: 5px;")
+        self.merge_right_button.setEnabled(enabled)
+        self.merge_right_button.setStyleSheet("background-color: tomato; color: white; padding: 5px; border-radius: 5px;" if enabled else "background-color: gray; color: lightgray; padding: 5px; border-radius: 5px;")
+        self.timer.blockSignals(False)
+        
     #segmentation appelé automatiquement à la création plus maintenant
     def start_segmentation(self):
         video_path = self.vlc_widget.path_of_media

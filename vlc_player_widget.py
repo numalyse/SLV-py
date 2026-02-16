@@ -17,7 +17,7 @@ from PySide6.QtCore import Qt, QTimer, Signal, QMetaObject, QObject
 from PySide6.QtGui import QKeySequence, QShortcut
 
 
-
+from preference_manager import PreferenceManager
 from custom_slider import CustomSlider
 from custom_timestamp_edit import CustomTimestampEdit
 from playback_speed_button import PlaybackSpeedButton
@@ -48,6 +48,7 @@ class VLCPlayerWidget(QWidget):
         self.media = None  # Pour suivre le fichier chargé
         self.ac = add_controls
         self.mute = m
+        self.pref_manager = PreferenceManager(self)
         if self.mute :
             self.player.audio_set_mute(True)
         else : 
@@ -107,6 +108,7 @@ class VLCPlayerWidget(QWidget):
         self.full_screen=False
 
         self.estimated_time = None  # temps estimé après avance frame par frame
+        self.setAcceptDrops(True) # Nécessaire pour le drag & drop
 
     def display(self,visible):
         self.video_name_label.setVisible(visible)
@@ -161,6 +163,7 @@ class VLCPlayerWidget(QWidget):
 
         self.move_front_shortcut = QShortcut(QKeySequence("Right"), self)
         self.move_front_shortcut.activated.connect(self.move_front)
+
         self.move_front_one_frame_shortcut = QShortcut(QKeySequence("E"), self)
         self.move_front_one_frame_shortcut.activated.connect(self.move_front_one_frame)
         
@@ -280,9 +283,12 @@ class VLCPlayerWidget(QWidget):
 
 
     def load_file(self,auto=True):
-        file_path, _ = QFileDialog.getOpenFileName(self, "Ouvrir une vidéo", "", "Fichiers vidéo (*.mp4 *.avi *.mkv *.mov *.m4v)")
+        self.pref_manager.load_preferences()
+        print(self.pref_manager.preferences)
+        file_path, _ = QFileDialog.getOpenFileName(self, "Ouvrir une vidéo", self.pref_manager.preferences["open_video_path"], "Fichiers vidéo (*.mp4 *.avi *.mkv *.mov *.m4v)")
         if not file_path :
-            return 
+            return
+        self.pref_manager.change_preference("open_video_path", file_path)
         if auto : self.load_video(file_path)
         self.path_of_media=file_path
         return file_path
@@ -307,9 +313,11 @@ class VLCPlayerWidget(QWidget):
             self.player.audio_set_mute(self.mute)
 
             self.progress_slider.setEnabled(True)
+            self.line_edit.fps = self.fps
 
             if duration_ms is not None:
                 self.progress_slider.setRange(0, duration_ms)
+                self.line_edit.max_time = duration_ms
             
             if(self.begin):
                 self.player.play()
@@ -541,8 +549,13 @@ class VLCPlayerWidget(QWidget):
         except ValueError:
             print("Format du timecode invalide. Utilisez le format HH:MM:SS[FF].")
             return  # Si la conversion échoue, on ignore l'entrée
-
-        self.set_position_timecode(new_time)
+        
+        bounded_time = max(0, min(new_time, self.line_edit.max_time))
+        if bounded_time != new_time:
+            self.line_edit.blockSignals(True)
+            self.line_edit.set_text(TimeManager.m_to_hmsf(self, bounded_time))
+            self.line_edit.blockSignals(False)
+        self.set_position_timecode(bounded_time)
     
     
     def set_position_timecode(self,new_time):
@@ -603,7 +616,28 @@ class VLCPlayerWidget(QWidget):
         msg=MessagePopUp(self,txt="Capture vidéo enregistré dans SLV_Content/Captures_Vidéos")
         return capture_path
 
-
+    def dragEnterEvent(self, event):
+        # Accepter les fichiers droppés
+        if self.test_video_drop(event) != None:
+            event.acceptProposedAction()
+        else:
+            event.ignore()
+    
+    def dropEvent(self, event):
+        file_path = self.test_video_drop(event)
+        if file_path != None:
+            self.load_video(file_path)
+    
+    def test_video_drop(self, event):
+        if event.mimeData().hasUrls() or event.mimeData().hasFormat("text/uri-list"):
+            mime_data = event.mimeData()
+            if mime_data.hasUrls():
+                urls = mime_data.urls()
+                for url in urls:
+                    file_path = url.toLocalFile()
+                    if file_path.lower().endswith(('.mp4', '.avi', '.mkv', '.mov', '.m4v')):
+                        return file_path
+        return
 
     def get_subtitles(self):
         descriptions = self.player.video_get_spu_description()

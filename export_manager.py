@@ -1,5 +1,5 @@
 from PySide6.QtWidgets import QWidget, QVBoxLayout, QPushButton, QFileDialog, QRadioButton, QLabel, QLineEdit, QDialog, QButtonGroup, QHBoxLayout, QApplication
-from PySide6.QtCore import Qt
+from PySide6.QtCore import Qt, QTimer
 
 import json
 import os
@@ -554,6 +554,7 @@ class ExportManager(QWidget):
             if self.chosen_file_path:
                 if not self.chosen_file_path.lower().endswith(".mp4"):
                     self.chosen_file_path += ".mp4"
+
             self.project_manager.path_of_super = self.chosen_file_path
 
             temp_dir = tempfile.gettempdir()
@@ -575,7 +576,7 @@ class ExportManager(QWidget):
                 return
 
             fourcc = cv2.VideoWriter_fourcc(*"mp4v")
-            out = cv2.VideoWriter(temp_video_path, fourcc, 30.0, (int(cap.get(3)), int(cap.get(4))))
+            out = cv2.VideoWriter(temp_video_path, fourcc, self.time_manager.fps, (int(cap.get(3)), int(cap.get(4))))
 
             cpt = 0
             while cap.isOpened():
@@ -643,13 +644,22 @@ class ExportManager(QWidget):
             video_clip.close()
             audio_clip.close()
             final_clip.close()
+            
+            # Nettoyage des fichiers temporaires avec un délai pour s'assurer que tous les processus sont terminés
+            self.delete_temp_files(temp_video_path, moviepy_tempdir)
 
-            os.remove(temp_video_path)
-            if os.path.exists(moviepy_tempdir):
-                shutil.rmtree(moviepy_tempdir)
+            #os.remove(temp_video_path)
+            #if os.path.exists(moviepy_tempdir):
+                #shutil.rmtree(moviepy_tempdir)
 
         except Exception as e:
             print(f"Erreur pendant l'export vidéo : {e}")
+
+    def delete_temp_files(self, temp_video_path, moviepy_tempdir):
+        if os.path.exists(temp_video_path):
+            QTimer.singleShot(200, lambda: os.remove(temp_video_path))
+        if os.path.exists(moviepy_tempdir):
+            QTimer.singleShot(200, lambda: shutil.rmtree(moviepy_tempdir))
 
     def write_text_horizontal_on_video(self, frame, txt, txt2, txt3, max_width, line_spacing=24):
         final_txt = txt + " - " + txt2 + "\n"
