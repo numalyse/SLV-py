@@ -161,6 +161,7 @@ class VLCPlayerWidget(QWidget):
 
         self.move_front_shortcut = QShortcut(QKeySequence("Right"), self)
         self.move_front_shortcut.activated.connect(self.move_front)
+
         self.move_front_one_frame_shortcut = QShortcut(QKeySequence("E"), self)
         self.move_front_one_frame_shortcut.activated.connect(self.move_front_one_frame)
         

@@ -238,12 +238,24 @@ class VLCMainWindow(QMainWindow):
         self.open_video_shortcut = QShortcut(QKeySequence("Ctrl+O"), self)
         self.open_video_shortcut.activated.connect(self.load_video_action) 
 
-        self.echap_aug_mode = QShortcut(QKeySequence(Qt.Key_Escape), self)
-        self.echap_aug_mode.activated.connect(self.echap_button_use)
+        #self.echap_aug_mode = QShortcut(QKeySequence(Qt.Key_Escape), self)
+        #self.echap_aug_mode.activated.connect(self.echap_button_use)
 
         self.full_screen_shortcut = QShortcut(QKeySequence("F"), self)
         self.full_screen_shortcut.activated.connect(self.full_screen_action)
 
+        self.full_screen_exit_shortcut = QShortcut(Qt.Key_Escape, self)
+        self.full_screen_exit_shortcut.activated.connect(self.full_screen_exit_action)
+
+    def full_screen_exit_action(self):
+        if self.sync_mode:
+            if self.sync_widget.full_screen_one:
+                self.quit_one_player_full_screen_signal.emit(True)
+            elif self.sync_widget.full_screen:
+                self.sync_widget.full_screen_action()
+        else:
+            if self.vlc_widget.full_screen:
+                self.handle_player_full_screen_request(self.vlc_widget)
 
     def full_screen_action(self):
         if(self.sync_mode):
@@ -263,7 +275,7 @@ class VLCMainWindow(QMainWindow):
             self.side_menu.display.setVisible(player.full_screen)
 
         player.display(player.full_screen)
-        player.full_screen_button.setVisible(not player.full_screen)
+        player.full_screen_button.setVisible(True)
         player.full_screen = not player.full_screen
         apply_dark_mode(self, player.full_screen)
 
