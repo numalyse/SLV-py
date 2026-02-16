@@ -193,6 +193,12 @@ class SideMenuWidget(QDockWidget):
 
         current_time = self.vlc_widget.get_current_time()
         frame = self.time_manager.m_to_frame(current_time)
+        left_enabled = not self.display.is_first_shot(self.get_current_button_data()["button"])
+        right_enabled = not self.display.is_last_shot(self.get_current_button_data()["button"])
+        self.merge_left_button.setEnabled(left_enabled)
+        self.merge_left_button.setStyleSheet("background-color: tomato; color: white; padding: 5px; border-radius: 5px;" if left_enabled else "background-color: gray; color: lightgray; padding: 5px; border-radius: 5px;")
+        self.merge_right_button.setEnabled(right_enabled)
+        self.merge_right_button.setStyleSheet("background-color: tomato; color: white; padding: 5px; border-radius: 5px;" if right_enabled else "background-color: gray; color: lightgray; padding: 5px; border-radius: 5px;")
 
         for seg in self.display.stock_button:
             if round(seg["time"]) <= round(current_time) < round(seg["end"]):
@@ -622,15 +628,21 @@ class SideMenuWidget(QDockWidget):
         self.start_segmentation()
 
     def toggle_buttons(self, enabled):
+        self.timer.blockSignals(True)
         self.color_button.setEnabled(enabled)
-        self.color_button.setStyleSheet("background-color: blue; color: white; padding: 5px; border-radius: 5px;" if enabled else "background-color: gray; color: white; padding: 5px; border-radius: 5px;")
+        self.color_button.setStyleSheet("background-color: blue; color: white; padding: 5px; border-radius: 5px;" if enabled else "background-color: gray; color: lightgray; padding: 5px; border-radius: 5px;")
         self.add_button.setEnabled(enabled)
-        self.add_button.setStyleSheet("background-color: orange; color: white; padding: 5px; border-radius: 5px;" if enabled else "background-color: gray; color: white; padding: 5px; border-radius: 5px;")
+        self.add_button.setStyleSheet("background-color: orange; color: white; padding: 5px; border-radius: 5px;" if enabled else "background-color: gray; color: lightgray; padding: 5px; border-radius: 5px;")
         self.split_button.setEnabled(enabled)
-        self.split_button.setStyleSheet("background-color: purple; color: white; padding: 5px; border-radius: 5px;" if enabled else "background-color: gray; color: white; padding: 5px; border-radius: 5px;")
+        self.split_button.setStyleSheet("background-color: purple; color: white; padding: 5px; border-radius: 5px;" if enabled else "background-color: gray; color: lightgray; padding: 5px; border-radius: 5px;")
         self.seg_button.setEnabled(enabled)
-        self.seg_button.setStyleSheet("background-color: green; color: white; padding: 5px; border-radius: 5px;" if enabled else "background-color: gray; color: white; padding: 5px; border-radius: 5px;")
-
+        self.seg_button.setStyleSheet("background-color: green; color: white; padding: 5px; border-radius: 5px;" if enabled else "background-color: gray; color: lightgray; padding: 5px; border-radius: 5px;")
+        self.merge_left_button.setEnabled(enabled)
+        self.merge_left_button.setStyleSheet("background-color: tomato; color: white; padding: 5px; border-radius: 5px;" if enabled else "background-color: gray; color: lightgray; padding: 5px; border-radius: 5px;")
+        self.merge_right_button.setEnabled(enabled)
+        self.merge_right_button.setStyleSheet("background-color: tomato; color: white; padding: 5px; border-radius: 5px;" if enabled else "background-color: gray; color: lightgray; padding: 5px; border-radius: 5px;")
+        self.timer.blockSignals(False)
+        
     #segmentation appelé automatiquement à la création plus maintenant
     def start_segmentation(self):
         video_path = self.vlc_widget.path_of_media
