@@ -63,6 +63,10 @@ class VLCMainWindow(QMainWindow):
 
         self.side_menu = None
 
+        # indique si on est en mode segmentation ou pas 
+        # Pour savoir si on doit afficher le menu latéral après avoir quitté le plein écran en lecture classique
+        self.seg_mode=False
+
         self.project=None
 
         self.save_state=False  
@@ -270,14 +274,28 @@ class VLCMainWindow(QMainWindow):
             self.vlc_widget.full_screen_action()
 
     def handle_player_full_screen_request(self, player):
-        self.display(player.full_screen)
+        self.toolbar.setVisible(player.full_screen)
+        self.menu_bar.setVisible(player.full_screen)
+        
+        if self.side_menu is not None :
+            self.side_menu.setVisible(False)
+            self.side_menu.display.setVisible(False)
 
-        if self.side_menu is not None:
-            self.side_menu.display.setVisible(player.full_screen)
+        if(player.full_screen):
+            # check si on est en mode segmentation si oui et qu'on quitte le fullscreen alors on affiche le menu latéral sinon on le cache
+            if self.side_menu is not None and self.seg_mode:
+                self.side_menu.setVisible(True)
+                self.side_menu.display.setVisible(True)
+
+            self.showMaximized()
+        else:
+            self.showFullScreen()
 
         player.display(player.full_screen)
         player.full_screen_button.setVisible(True)
+
         player.full_screen = not player.full_screen
+
         apply_dark_mode(self, player.full_screen)
 
     #gestion du projet 
@@ -317,6 +335,7 @@ class VLCMainWindow(QMainWindow):
                     self.project=None
                     self.side_menu=None
                     return
+                
                 self.load_project_from_path(project_path)
 
     def load_project_from_path(self, project_path):
@@ -339,6 +358,8 @@ class VLCMainWindow(QMainWindow):
             self.project=None
             self.side_menu=None
         
+        self.update_seg_mode(True)
+
         self.save_state=False
 
     
@@ -350,6 +371,8 @@ class VLCMainWindow(QMainWindow):
                 self.sync_widget.load_video()
             else:
                 self.vlc_widget.load_file()
+
+            self.update_seg_mode(False)
 
     def media_load_action(self):
         self.project=None
@@ -528,8 +551,11 @@ class VLCMainWindow(QMainWindow):
         if(self.auto_save()):
             """ Fonction qui gère l'activation et la désactivation du mode synchronisé. """
             if self.sync_mode:
+                self.update_seg_mode(False)
+
                 # Si on est en mode synchronisé, on désactive ce mode
                 self.sync_mode = False
+                
                 self.remove_quit_button()
 
                 self.sync_widget.exit_video_players()
@@ -550,6 +576,8 @@ class VLCMainWindow(QMainWindow):
                 self.sync_widget.configure()
 
                 if(self.sync_widget.dialog_result):
+                    self.update_seg_mode(False)
+
                     # Connecte les signaux du sync_widget vers la fenêtre principale
                     self.create_sync_window()
 
@@ -594,33 +622,43 @@ class VLCMainWindow(QMainWindow):
             self.quit_button.deleteLater()
             self.quit_button = None
 
+
     #segmentation
     def seg_button_use(self):
         """Affiche ou cache le menu latéral."""
-        if not self.side_menu:
-            #self.vlc_widget.pause_video()
-            self.side_menu = SideMenuWidget(self.vlc_widget, self,start=True)
-            self.addDockWidget(Qt.BottomDockWidgetArea, self.side_menu)
-            self.side_menu.display.setVisible(True)
-            self.side_menu.length=self.vlc_widget.get_size_of_slider()
-            if self.project : 
-                self.project.seg=self.side_menu
-            self.side_menu.change.connect(self.change)
-            #self.export_button.setEnabled(True)
-            self.side_menu.segmentation_done.connect(self.export_button.setEnabled)
-            self.side_menu.segmentation_done.connect(self.aug_mode_action.setEnabled)
-
-            # Supprime ceus deja présent par précaution
-            for btn_data in self.side_menu.display.stock_button:
-                self.delate_button(btn_data["button"])
-                
-            # Ajoute un bouton qui fait la taille de la vidéo
-            video_length = self.vlc_widget.player.get_length()
-            last_frame = self.vlc_widget.get_number_of_frames()
-            self.side_menu.add_new_button( "Plan 1", 0, video_length, 0, last_frame)
+        if not self.seg_mode:
+            self.update_seg_mode(True)
 
             self.add_quit_button(sync=False)
+
+            # Si le menu latéral existe déjà, on le réaffiche, sinon on le crée
+            # car on peut avoir un menu latéral déjà créé si on a chargé un projet ou si on a déjà activé le mode segmentation auparavant
+            if self.side_menu is not None:
+                self.side_menu.setVisible(True)
+                self.side_menu.display.setVisible(True)
+            else :
+                #self.vlc_widget.pause_video()
+                self.side_menu = SideMenuWidget(self.vlc_widget, self,start=True)
+                self.addDockWidget(Qt.BottomDockWidgetArea, self.side_menu)
+                self.side_menu.display.setVisible(True)
+                self.side_menu.length=self.vlc_widget.get_size_of_slider()
+                if self.project : 
+                    self.project.seg=self.side_menu
+                self.side_menu.change.connect(self.change)
+                #self.export_button.setEnabled(True)
+                self.side_menu.segmentation_done.connect(self.export_button.setEnabled)
+                self.side_menu.segmentation_done.connect(self.aug_mode_action.setEnabled)
+
+                # Supprime ceus deja présent par précaution
+                for btn_data in self.side_menu.display.stock_button:
+                    self.delate_button(btn_data["button"])
+                    
+                # Ajoute un bouton qui fait la taille de la vidéo
+                video_length = self.vlc_widget.player.get_length()
+                last_frame = self.vlc_widget.get_number_of_frames()
+                self.side_menu.add_new_button( "Plan 1", 0, video_length, 0, last_frame)
         else:
+            self.update_seg_mode(False)
             val=not self.side_menu.isVisible()
             self.side_menu.setVisible(val)
             self.side_menu.display.setVisible(val)
@@ -670,9 +708,10 @@ class VLCMainWindow(QMainWindow):
     def display(self,visible):
         self.toolbar.setVisible(visible)
         self.menu_bar.setVisible(visible)
-        if self.side_menu:
-            self.side_menu.setVisible(visible)
+        # check si on est en mode segmentation si oui et visible alors on affiche le menu latéral sinon on le cache
         if(visible):
+            if self.seg_mode :
+                self.side_menu.setVisible(visible)
             self.showMaximized()
         else:
             self.showFullScreen()
@@ -937,3 +976,12 @@ class VLCMainWindow(QMainWindow):
                 if is_valid:
                     self.load_project_from_path(project_path)
         return super().dropEvent(event)
+    
+    def update_seg_mode(self, state):
+        """ Met à jour le mode de segmentation et le texte du bouton en fonction de l'état. """
+        if state:
+            self.seg_mode=True
+            self.seg_mode_action.setText("Quitter la Segmentation")
+        else:
+            self.seg_mode=False
+            self.seg_mode_action.setText("Segmentation")
