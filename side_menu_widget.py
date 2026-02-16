@@ -96,7 +96,7 @@ class SideMenuWidget(QDockWidget):
 
         # --- Zone inférieure : Timeline zoomable ---
         self.buttons_layout = QHBoxLayout()
-        self.buttons_layout.setSpacing(0)
+        self.buttons_layout.setSpacing(3)
 
         self.create_keyboard_shortcuts()
 
@@ -127,6 +127,17 @@ class SideMenuWidget(QDockWidget):
         self.split_button.setFixedHeight(40)
         self.buttons_layout.addWidget(self.split_button)
 
+        self.merge_left_button = NoFocusPushButton("< Fusionner", self)
+        self.merge_left_button.setStyleSheet("background-color: tomato ; color: white; padding: 5px; border-radius: 5px;")
+        self.merge_left_button.clicked.connect(lambda: self.delate_button_prec(self.get_current_button_data()["button"]))
+        self.merge_left_button.setFixedHeight(40)
+        self.buttons_layout.addWidget(self.merge_left_button)
+
+        self.merge_right_button = NoFocusPushButton("Fusionner >", self)
+        self.merge_right_button.setStyleSheet("background-color: tomato ; color: white; padding: 5px; border-radius: 5px;")
+        self.merge_right_button.clicked.connect(lambda: self.delate_button_suiv(self.get_current_button_data()["button"]))
+        self.merge_right_button.setFixedHeight(40)
+        self.buttons_layout.addWidget(self.merge_right_button)
 
         self.buttons_layout.addStretch()
         self.main_layout.addLayout(self.buttons_layout)
