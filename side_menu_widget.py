@@ -211,7 +211,7 @@ class SideMenuWidget(QDockWidget):
     def get_current_button_data(self):
         """ 
         Retourne les informations du bouton (plan) actuellement actif 
-        (celui qui correspond au timecode actuel), ou None s'il n'y en a pas. 
+        (celui qui correspond au timecode actuel), ou le plus proche du timecode actuel s'il n'y en a pas. 
         """
         if not self.vlc_widget.media:
             return None
