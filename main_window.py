@@ -336,8 +336,8 @@ class VLCMainWindow(QMainWindow):
                 # Vérifie si c'est un projet valide sinon, ne fait rien
                 is_valid = check_project_validity(project_path)
                 if not is_valid:
-                    self.project=None
-                    self.side_menu=None
+                    # Afficher un message d'erreur
+                    msg = MessagePopUp(self, titre="Erreur", txt="Le dossier sélectionné ne contient pas de projet valide.", type="error", time=-1)
                     return
                 
                 self.load_project_from_path(project_path)
@@ -980,6 +980,8 @@ class VLCMainWindow(QMainWindow):
                 is_valid = check_project_validity(project_path)
                 if is_valid:
                     self.load_project_from_path(project_path)
+                else:
+                    msg = MessagePopUp(self, titre="Erreur", txt="Le dossier sélectionné ne contient pas de projet valide.", type="error", time=-1)
         return super().dropEvent(event)
     
     def update_seg_mode(self, state):
