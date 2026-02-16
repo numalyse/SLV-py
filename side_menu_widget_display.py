@@ -160,6 +160,8 @@ class SideMenuWidgetDisplay(QDockWidget):
         frame_name.setStyleSheet("border: none; background: transparent;")
         frame_name.adjustSize()
 
+        # -------------- A ENLEVER
+
         # Bouton du nom du plan
         button = NoFocusPushButton(name, self)
         button.setStyleSheet("background-color: #666; color: white; padding: 5px; border-radius: 5px;")
@@ -178,6 +180,8 @@ class SideMenuWidgetDisplay(QDockWidget):
 
         time_label.setFixedHeight(50)
 
+        # -------------- FIN A ENLEVER
+
         frame_layout.addWidget(self.info_data_form(name="Numéro du plan", text=numbering_name, modifiable=False))
         frame_layout.addWidget(self.info_data_form(name="Nom du plan", text=name, modifiable=True))
 
@@ -185,12 +189,29 @@ class SideMenuWidgetDisplay(QDockWidget):
         frame_layout.addWidget(self.info_data_form(name="Fin du plan", text=self.time_manager.m_to_hmsf(end), modifiable=False))
         frame_layout.addWidget(self.info_data_form(name="Durée du plan", text=self.time_manager.m_to_hmsf(end - time), modifiable=False))
 
+        frame_buttons_actions = QFrame(self)
+        frame_buttons_actions.setStyleSheet("border: none;")
+        frame_buttons_layout = QHBoxLayout(frame_buttons_actions)
+
+        button_extract_plan = NoFocusPushButton("Extraire le plan", self)
+        button_extract_plan.setStyleSheet("border: none; background-color: palette(base);")
+        button_extract_plan.clicked.connect(lambda _, btn=button: self.extract_action(btn))
+        button_extract_plan.setFocusPolicy(Qt.NoFocus)
+        frame_buttons_layout.addWidget(button_extract_plan)
+
+        button_modify_timecode = NoFocusPushButton("Modifier Timecode", self)
+        button_modify_timecode.setStyleSheet("border: none; background-color: palette(base);")
+        button_modify_timecode.clicked.connect(lambda _, btn=button: self.modify_time(btn))  
+        button_modify_timecode.setFocusPolicy(Qt.NoFocus)  
+        frame_buttons_layout.addWidget(button_modify_timecode)
+        
+        frame_layout.addWidget(frame_buttons_actions)
+        
         #frame_layout.addWidget(frame_name)
         #frame_layout.addWidget(button)
         #frame_layout.addWidget(time_label)
 
-        frame.setVisible(False)
-        # ===== FIN INFOS PLAN sur le volet droit =====
+        #frame.setVisible(False)
 
         # Ajouter le frame à la liste des boutons stockés
         self.stock_button.append({"id":btn,"rect":rect,"color":color,"frame": frame, "button": button, "time": time, "end": end, "label": time_label, "frame1": frame1, "frame2":frame2})
