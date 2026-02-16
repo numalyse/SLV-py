@@ -137,7 +137,7 @@ class SideMenuWidgetDisplay(QDockWidget):
         return background_frame
 
     #fonction d'ajout d'une nouveaux bouton
-    def add_new_button(self, btn,rect,color,name="", time=0, end=0, verif=True, frame1=-1, frame2=-1):
+    def add_new_button(self, btn,rect,color,name="", time=0, end=0, verif=True, frame1=-1, frame2=-1, notes=[]):
         if verif and time >= self.max_time:
             return
 
@@ -198,10 +198,13 @@ class SideMenuWidgetDisplay(QDockWidget):
         # Trier les boutons
         self.stock_button.sort(key=lambda btn_data: btn_data["time"])
 
+        self.button_notes[button] = []  # Associer une liste vide de notes au bouton
+        self.add_note(button, notes[0] if notes else "") 
+
         # Réorganiser les boutons dans l'affichage
         self.reorganize_buttons()
 
-        self.button_notes[button] = []  # Associer une liste vide de notes au bouton
+
 
         if verif:
             self.segmentation_done.emit(True)
