@@ -190,6 +190,7 @@ def check_project_validity(project_path):
             video_path = os.path.join(project_path,project_data.get("video"))
             if video_path and os.path.isfile(video_path):
                 print(f"Vidéo chargée : {video_path}")
+                # vérifier le temps de la vidéo == video dans le json
             else:
                 return False
 
