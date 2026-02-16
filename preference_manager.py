@@ -13,8 +13,13 @@ class PreferenceManager:
             "format_capture": False,
             "post_traitement": False,
             "gamma":1.4,
-            "format_export_text": [False, False, True, False]
-        }
+            "format_export_text": [False, False, True, False],
+            "open_project_path" : "/",
+            "open_video_path" : "/",
+            "save_project_path" : "/",
+            "save_export_path" : "/"
+        },
+        self.preferences = {}
         self.load_preferences()
 
     def load_preferences(self):
@@ -31,6 +36,7 @@ class PreferenceManager:
             self.save_preferences()
 
         for key, value in preferences.items():
+            self.preferences[key] = value
             setattr(self.parent, key, value)
 
     def save_preferences(self):
@@ -38,12 +44,26 @@ class PreferenceManager:
             "format_capture": getattr(self.parent, "format_capture", False),
             "post_traitement": getattr(self.parent, "post_traitement", False),
             "gamma": getattr(self.parent, "gamma", 1.4),
-            "format_export_text": getattr(self.parent, "format_export_text", [False, False, True, False])
+            "format_export_text": getattr(self.parent, "format_export_text", [False, False, True, False]),
+            "open_project_path" : "/",
+            "open_video_path" : "/",
+            "save_project_path" : "/",
+            "save_export_path" : "/"
         }
 
         try:
             with open(self.filepath, "w") as f:
                 json.dump(preferences, f, indent=4)
+            print(f"Préférences sauvegardées dans : {self.filepath}")
+        except IOError as e:
+            print(f"Erreur lors de la sauvegarde : {e}")
+
+    def change_preference(self, key, value):
+        
+        self.preferences[key] = value
+        try:
+            with open(self.filepath, "w") as f:
+                json.dump(self.preferences, f, indent=4)
             print(f"Préférences sauvegardées dans : {self.filepath}")
         except IOError as e:
             print(f"Erreur lors de la sauvegarde : {e}")

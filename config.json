@@ -7,5 +7,9 @@
         false,
         false,
         true
-    ]
+    ],
+    "open_project_path" : "/",
+    "open_video_path" : "/",
+    "save_project_path" : "/",
+    "save_export_path" : "/"
 }

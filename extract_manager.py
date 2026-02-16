@@ -4,6 +4,7 @@ from PySide6.QtGui import QImage, QPixmap
 import os
 import cv2
 
+from preference_manager import PreferenceManager
 from time_selector import TimeSelector
 from time_editor import TimeEditor
 from message_popup import MessagePopUp
@@ -15,6 +16,7 @@ class ExtractManager(QWidget):
         super().__init__(parent)
         self.vlc = parent
         self.file_path = None
+        self.pref_manager = PreferenceManager(self)
         self.configure()
 
     def configure(self):
@@ -125,11 +127,13 @@ class ExtractManager(QWidget):
         self.previewer2.preview_frame(self.end_time.get_time_in_milliseconds())
 
     def save_export(self):
+        self.pref_manager.load_preferences()
         if os.name == "nt":  # Windows
-            default_dir = "C:/"
+            default_dir = self.pref_manager.preferences["save_export_path"]
         else:  # Linux/Mac
-            default_dir = "/"
+            default_dir = self.pref_manager.preferences["save_export_path"]
         file_path, _ = QFileDialog.getSaveFileName(self, "Nommer le fichier texte", default_dir)
+        self.pref_manager.change_preference("save_export_path", file_path)
         self.file_path = file_path
         if file_path:
             self.folder_button.setStyleSheet("background-color: green;")

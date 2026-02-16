@@ -17,7 +17,7 @@ from PySide6.QtCore import Qt, QTimer, Signal, QMetaObject, QObject
 from PySide6.QtGui import QKeySequence, QShortcut
 
 
-
+from preference_manager import PreferenceManager
 from custom_slider import CustomSlider
 from custom_timestamp_edit import CustomTimestampEdit
 from playback_speed_button import PlaybackSpeedButton
@@ -48,6 +48,7 @@ class VLCPlayerWidget(QWidget):
         self.media = None  # Pour suivre le fichier chargé
         self.ac = add_controls
         self.mute = m
+        self.pref_manager = PreferenceManager(self)
         if self.mute :
             self.player.audio_set_mute(True)
         else : 
@@ -282,9 +283,12 @@ class VLCPlayerWidget(QWidget):
 
 
     def load_file(self,auto=True):
-        file_path, _ = QFileDialog.getOpenFileName(self, "Ouvrir une vidéo", "", "Fichiers vidéo (*.mp4 *.avi *.mkv *.mov *.m4v)")
+        self.pref_manager.load_preferences()
+        print(self.pref_manager.preferences)
+        file_path, _ = QFileDialog.getOpenFileName(self, "Ouvrir une vidéo", self.pref_manager.preferences["open_video_path"], "Fichiers vidéo (*.mp4 *.avi *.mkv *.mov *.m4v)")
         if not file_path :
-            return 
+            return
+        self.pref_manager.change_preference("open_video_path", file_path)
         if auto : self.load_video(file_path)
         self.path_of_media=file_path
         return file_path
