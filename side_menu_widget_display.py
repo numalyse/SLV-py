@@ -1,4 +1,4 @@
-from PySide6.QtWidgets import QWidget, QVBoxLayout, QPushButton, QMenu, QInputDialog, QScrollArea, QDockWidget, QLabel, QDialog, QLineEdit, QSlider, QHBoxLayout, QSpinBox, QTextEdit, QFrame, QApplication, QSizePolicy, QFormLayout, QGridLayout
+from PySide6.QtWidgets import QWidget, QVBoxLayout, QMessageBox, QPushButton, QMenu, QInputDialog, QScrollArea, QDockWidget, QLabel, QDialog, QLineEdit, QSlider, QHBoxLayout, QSpinBox, QTextEdit, QFrame, QApplication, QSizePolicy, QFormLayout, QGridLayout
 from PySide6.QtGui import QAction
 from PySide6.QtCore import Qt, QTimer, Signal, QEvent
 
@@ -235,7 +235,8 @@ class SideMenuWidgetDisplay(QDockWidget):
         frame_buttons_layout.addWidget(button_next_plan, 0, 1)
 
         button_extract_plan = NoFocusPushButton("Extraire le plan", self)
-        button_extract_plan.clicked.connect(lambda _, btn=button: self.extract_action(btn))
+        button_extract_plan.setStyleSheet("border: none; background-color: palette(base);")
+        button_extract_plan.clicked.connect(lambda _, btn=button: self.extract_confirm(btn))
         button_extract_plan.setFocusPolicy(Qt.NoFocus)
         frame_buttons_layout.addWidget(button_extract_plan, 1, 0)
 
@@ -280,7 +281,7 @@ class SideMenuWidgetDisplay(QDockWidget):
         menu.addAction(add_note_action)
 
         extract_action = QAction("Extraire le plan")
-        extract_action.triggered.connect(lambda: self.extract_action(button))
+        extract_action.triggered.connect(lambda: self.extract_confirm(button))
         menu.addAction(extract_action)
 
         # Vérifie si le plan n'est pas le premier dans la liste pour afficher l'option de concaténer avec le précédent
@@ -421,6 +422,17 @@ class SideMenuWidgetDisplay(QDockWidget):
                 break
         self.parent.emit_change()
 
+    def extract_confirm(self, button):
+        msg = QMessageBox(self)
+        msg.setWindowTitle("Extraire le plan")
+        msg.setText("Voulez-vous enregistrer le plan sélectionné ?")
+        msg.setIcon(QMessageBox.Question)
+        ok = msg.addButton("Oui", QMessageBox.ActionRole)
+        cancel = msg.addButton("Annuler", QMessageBox.ActionRole)
+        ok.clicked.connect(lambda _, btn=button : self.extract_action(btn))
+        cancel.clicked.connect(msg.close)
+        msg.show()
+
     #fonction 4 extraction
     def extract_action(self, button): 
         for btn_data in self.stock_button:
@@ -541,6 +553,62 @@ class SideMenuWidgetDisplay(QDockWidget):
     def change_label_time(self,label,new_time,end_time):
         new_label ="Début : "+self.time_manager.m_to_hmsf(new_time)+" / Fin : "+self.time_manager.m_to_hmsf(end_time)+ " \nDurée : "+self.time_manager.m_to_hmsf(end_time-new_time)
         label.setText(new_label)
+
+    def change_frame(self, id ,btn_data):
+        """Met à jour l'affichage d'un bouton existant après modification de ses timecodes.
+
+        Réutilise le "frame" existant.
+        Les champs "Début / Fin / Durée" sont mis à jour.
+        """
+        try:
+            stock = self.stock_button[id]
+        except Exception:
+            print("Erreur : ID de bouton non trouvé dans stock_button.")
+            return
+
+        # Mettre à jour les valeurs temporelles dans stock
+        stock["time"] = btn_data.get("time", stock.get("time"))
+        stock["end"] = btn_data.get("end", stock.get("end"))
+        stock["frame1"] = btn_data.get("frame1", stock.get("frame1"))
+        stock["frame2"] = btn_data.get("frame2", stock.get("frame2"))
+
+        time = stock["time"]
+        end = stock["end"]
+        button = stock["button"]
+
+        # Conserver les notes : si aucune note, créer une note vide pour l'édition
+        if button not in self.button_notes or not self.button_notes.get(button):
+            self.button_notes.setdefault(button, [])
+            self.add_note(button, "")
+
+        # Mettre à jour les champs "Début / Fin / Durée" dans le frame existant
+        frame = stock.get("frame")
+        if frame is not None and frame.layout() is not None:
+            for i in range(frame.layout().count()):
+                child = frame.layout().itemAt(i).widget()
+                if not child:
+                    continue
+                label = child.findChild(QLabel)
+                line_edit = child.findChild(MyLineEdit)
+                if label and line_edit:
+                    key = label.text().strip()
+                    if key.startswith("Début"):
+                        line_edit.setText(self.time_manager.m_to_hmsf(time))
+                    elif key.startswith("Fin"):
+                        line_edit.setText(self.time_manager.m_to_hmsf(end))
+                    elif key.startswith("Durée"):
+                        line_edit.setText(self.time_manager.m_to_hmsf(max(0, end - time)))
+
+        # S'assurer que le nom du bouton affiché est à jour (ne pas recréer le bouton)
+        try:
+            button.setText(btn_data.get("button").text())
+        except Exception:
+            pass
+
+        self.stock_button.sort(key=lambda b: b["time"])
+        self.reorganize_buttons()
+
+        self.segmentation_done.emit(True)
         
     def adjust_neighbors(self, new_time, new_end_time):
         frame1 = self.parent.get_frame(new_time)

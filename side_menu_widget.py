@@ -574,7 +574,6 @@ class SideMenuWidget(QDockWidget):
         self.previewer2.preview_frame(self.time2.get_time_in_milliseconds())
 
     def split_plan(self, button):
-        print("split plan")
         button_to_split = self.get_current_button_data()
 
         if button_to_split is None:
@@ -583,14 +582,22 @@ class SideMenuWidget(QDockWidget):
         # Le plan de gauche garde le même nom, annotation ect.
 
         current_time = self.vlc_widget.get_current_time()
+
         current_frame = self.time_manager.m_to_frame(current_time)
+        #current_time = self.time_manager.frame_to_m(current_frame)
 
         self.add_new_button(name="Plan", time=current_time, end=button_to_split["end"],frame1=current_frame,frame2=button_to_split["frame2"])
+
         button_to_split["frame2"] = current_frame-1
         button_to_split["end"] = self.time_manager.frame_to_m(current_frame-1)
-        self.display.change_label_time(button_to_split["label"], button_to_split["time"], button_to_split["end"])
+        button_to_split_id = self.display.stock_button.index(button_to_split)
+        
+        self.display.change_frame(button_to_split_id, button_to_split)
+
+        #self.display.change_label_time(button_to_split["label"], button_to_split["time"], button_to_split["end"])
 
         self.display.reorganize_buttons()
+
 
 
     def get_frame(self,time):
