@@ -582,9 +582,12 @@ class SideMenuWidget(QDockWidget):
 
         self.add_new_button(name="Plan", time=current_time, end=button_to_split["end"],frame1=current_frame,frame2=button_to_split["frame2"])
 
-        # Retrouver l'id du bouton de base pour modifier son ui dans le side widget display
         button_to_split_id = self.display.stock_button.index(button_to_split)
+        self.display.stock_button[button_to_split_id]["frame2"] = current_frame-1
+        self.display.stock_button[button_to_split_id]["end"] = self.time_manager.frame_to_m(current_frame-1)
         self.display.change_frame(button_to_split_id, button_to_split)
+
+        #self.display.change_label_time(button_to_split["label"], button_to_split["time"], button_to_split["end"])
 
         self.display.reorganize_buttons()
 
