@@ -1,4 +1,4 @@
-from PySide6.QtWidgets import QWidget, QVBoxLayout, QMessageBox, QPushButton, QMenu, QInputDialog, QScrollArea, QDockWidget, QLabel, QDialog, QLineEdit, QSlider, QHBoxLayout, QSpinBox, QTextEdit, QFrame, QApplication, QSizePolicy, QFormLayout
+from PySide6.QtWidgets import QWidget, QVBoxLayout, QMessageBox, QPushButton, QMenu, QInputDialog, QScrollArea, QDockWidget, QLabel, QDialog, QLineEdit, QSlider, QHBoxLayout, QSpinBox, QTextEdit, QFrame, QApplication, QSizePolicy, QFormLayout, QGridLayout
 from PySide6.QtGui import QAction
 from PySide6.QtCore import Qt, QTimer, Signal, QEvent
 
@@ -56,6 +56,9 @@ class MyLineEdit(QLineEdit):
 class SideMenuWidgetDisplay(QDockWidget):
     change = Signal(bool)
     segmentation_done = Signal(bool)
+    button_next_plan_clicked = Signal()
+    button_prev_plan_clicked = Signal()
+
 
     def __init__(self, vlc_widget, parent=None):
         super().__init__("Segmentation", parent)  # Titre du dock
@@ -129,7 +132,7 @@ class SideMenuWidgetDisplay(QDockWidget):
         background_frame = QFrame(self)
         background_frame.setAutoFillBackground(True)
 
-        background_frame.setStyleSheet("border: none; background-color: palette(base); padding: 1px;")
+        background_frame.setStyleSheet("border: none; background-color: palette(base); padding: 1px; border-radius: 5px;")
         background_layout= QFormLayout(background_frame)
 
         name_label = QLabel(name, background_frame)
@@ -167,7 +170,8 @@ class SideMenuWidgetDisplay(QDockWidget):
             name = "Plan " + f"{cpt+1}"
 
         # Affichage numérotation des plans
-        numbering_name = f"[Plan n°{len(self.stock_button) + 1}]"
+        #numbering_name = f"[Plan n°{len(self.stock_button) + 1}]"
+        numbering_name = f"{len(self.stock_button) + 1}"
         frame_name = QLabel(numbering_name, self)
         frame_name.setAlignment(Qt.AlignCenter)
         frame_name.setStyleSheet("border: none; background: transparent;")
@@ -177,11 +181,11 @@ class SideMenuWidgetDisplay(QDockWidget):
 
         # Bouton du nom du plan
         button = NoFocusPushButton(name, self)
-        button.setStyleSheet("background-color: #666; color: white; padding: 5px; border-radius: 5px;")
-        button.setContextMenuPolicy(Qt.CustomContextMenu)
+        #button.setStyleSheet("background-color: #666; color: white; padding: 5px; border-radius: 5px;")
+        #button.setContextMenuPolicy(Qt.CustomContextMenu)
         #button.customContextMenuRequested.connect(lambda pos, btn=button: self.show_context_menu(pos, btn))
-        button.clicked.connect(lambda _, btn=button: self.rename_button(btn))
-        button.setFocusPolicy(Qt.NoFocus)
+        #button.clicked.connect(lambda _, btn=button: self.rename_button(btn))
+        #button.setFocusPolicy(Qt.NoFocus)
         #button.setFixedSize(180, 25)
 
         # Création du label pour afficher le timecode
@@ -218,21 +222,29 @@ class SideMenuWidgetDisplay(QDockWidget):
         self.add_note(button, notes[0] if notes else "") 
         
         frame_buttons_actions = QFrame(self)
-        frame_buttons_actions.setStyleSheet("border: none;")
-        frame_buttons_layout = QHBoxLayout(frame_buttons_actions)
+        frame_buttons_layout = QGridLayout(frame_buttons_actions)
+
+        button_prev_plan = NoFocusPushButton("Plan précédent", self)
+        button_prev_plan.setFocusPolicy(Qt.NoFocus)
+        button_prev_plan.clicked.connect(self.button_prev_plan_clicked.emit)
+        frame_buttons_layout.addWidget(button_prev_plan, 0, 0)
+
+        button_next_plan = NoFocusPushButton("Plan suivant", self)
+        button_next_plan.setFocusPolicy(Qt.NoFocus)
+        button_next_plan.clicked.connect(self.button_next_plan_clicked.emit)
+        frame_buttons_layout.addWidget(button_next_plan, 0, 1)
 
         button_extract_plan = NoFocusPushButton("Extraire le plan", self)
         button_extract_plan.setStyleSheet("border: none; background-color: palette(base);")
         button_extract_plan.clicked.connect(lambda _, btn=button: self.extract_confirm(btn))
         button_extract_plan.setFocusPolicy(Qt.NoFocus)
-        frame_buttons_layout.addWidget(button_extract_plan)
+        frame_buttons_layout.addWidget(button_extract_plan, 1, 0)
 
         button_modify_timecode = NoFocusPushButton("Modifier Timecode", self)
-        button_modify_timecode.setStyleSheet("border: none; background-color: palette(base);")
         button_modify_timecode.clicked.connect(lambda _, btn=button: self.modify_time(btn))  
         button_modify_timecode.setFocusPolicy(Qt.NoFocus)  
-        frame_buttons_layout.addWidget(button_modify_timecode)
-        
+        frame_buttons_layout.addWidget(button_modify_timecode, 1, 1)
+
         frame_layout.addWidget(frame_buttons_actions)
 
         # Réorganiser les boutons dans l'affichage
@@ -347,8 +359,8 @@ class SideMenuWidgetDisplay(QDockWidget):
         note_widget.SignalFocusOut.connect(lambda: self.vlc_widget.play_video())
 
         note_frame = QFrame(self)
-        note_frame.setFixedSize(285, 200)
-        note_frame.setStyleSheet("border: none; background-color: palette(base);")
+        #note_frame.setFixedSize(285, 200)
+        note_frame.setStyleSheet("border: none; background-color: palette(base); padding: 5px; border-radius: 5px;")
         note_layout = QVBoxLayout(note_frame)
         note_layout.setContentsMargins(0, 0, 0, 0)
         note_layout.setSpacing(2)
