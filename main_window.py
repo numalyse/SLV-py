@@ -1,4 +1,4 @@
-from PySide6.QtWidgets import QDockWidget, QMainWindow, QToolBar, QWidget, QPushButton, QFileDialog, QMessageBox, QDialog, QVBoxLayout, QLabel, QLineEdit,QMenu, QHBoxLayout, QButtonGroup, QRadioButton, QToolButton, QSlider
+from PySide6.QtWidgets import QDockWidget, QMainWindow, QToolBar, QWidget, QPushButton, QFileDialog, QMessageBox, QCheckBox, QDialog, QVBoxLayout, QLabel, QLineEdit,QMenu, QHBoxLayout, QButtonGroup, QRadioButton, QToolButton, QSlider
 from PySide6.QtGui import QAction, QKeySequence, QShortcut, QActionGroup, QImage, QPixmap, QPalette
 from PySide6.QtCore import Qt, QTimer, Signal
 
@@ -190,6 +190,14 @@ class VLCMainWindow(QMainWindow):
         self.export_menu = QAction("Paramètres d'exportation", self)
         self.export_menu.triggered.connect(self.export_option)
         option_menu.addAction(self.export_menu)
+
+        self.help_menu = self.menu_bar.addMenu("Aide")
+        self.help_action = QAction("Aide", self)
+        self.about_action = QAction("À propos", self)
+        self.help_menu.addAction(self.help_action)
+        self.help_menu.addAction(self.about_action)
+        self.help_action.triggered.connect(self.help_action_dialog)
+        self.about_action.triggered.connect(self.about_action_dialog)
 
 
     def create_toolbar(self):
@@ -885,6 +893,36 @@ class VLCMainWindow(QMainWindow):
 
         dialog.exec()
 
+    def help_action_dialog(self):
+        dialog = QDialog(self)
+        dialog.setWindowTitle("Aide")
+        dialog.setFixedSize(300, 200)
+        help_main_layout = QVBoxLayout(dialog)
+        help_label = QLabel("(Menu d'aide à compléter)")
+        help_main_layout.addWidget(help_label)
+
+        dialog.exec()
+    
+    def about_action_dialog(self):
+        dialog = QDialog(self)
+        dialog.setFixedSize(300, 250)
+        dialog.setWindowTitle("À propos")
+        about_main_layout = QVBoxLayout(dialog)
+        about_title_label = QLabel("Super Lecteur Vidéo - SLV version 0.1 (17 Février 2026)")
+        about_main_layout.addWidget(about_title_label)
+        about_project_label = QLabel("Projet ANR Numalyse")
+        about_main_layout.addWidget(about_project_label)
+        about_credits = QLabel("- libvlc \n- ffmpeg \n- ...")
+        about_credits_checkbox = QCheckBox("Crédits")
+        
+        about_main_layout.addWidget(about_credits_checkbox)
+        about_main_layout.addWidget(about_credits)
+        about_credits.hide()
+        about_credits_checkbox.checkStateChanged.connect(lambda : about_credits.setVisible(about_credits_checkbox.isChecked()))
+
+
+
+        dialog.exec()
 
     def update_subtitle_menu(self):
         if not self.subtitle_create:
