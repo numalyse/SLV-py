@@ -54,6 +54,8 @@ class ClickableRectItem(QGraphicsRectItem):
 class SideMenuWidget(QDockWidget):
     change = Signal(bool)
     segmentation_done = Signal(bool)
+    button_prev_plan_clicked = Signal()
+    button_next_plan_clicked = Signal()
 
     def __init__(self, vlc_widget, parent=None,start=True):
         super().__init__("", parent)  # Titre du dock
@@ -67,6 +69,10 @@ class SideMenuWidget(QDockWidget):
 
         self.display=SideMenuWidgetDisplay(self.vlc_widget,self)
         self.parent.addDockWidget(Qt.RightDockWidgetArea, self.display)
+
+        self.display.button_prev_plan_clicked.connect(lambda: self.previous_button_shortcut.activated.emit())
+        self.display.button_next_plan_clicked.connect(lambda: self.next_button_shortcut.activated.emit())
+
 
         self.length=self.vlc_widget.get_size_of_slider()
 
