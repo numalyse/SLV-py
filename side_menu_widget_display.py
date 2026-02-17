@@ -443,34 +443,52 @@ class SideMenuWidgetDisplay(QDockWidget):
         dialog.setModal(True)
 
         layout = QVBoxLayout(dialog)
-        # Slider pour choisir le temps
+
+        interval_layout = QHBoxLayout()
+
+        start_time_editor_layout = QVBoxLayout()
+
         time_label = QLabel("Début :", dialog)
-        layout.addWidget(time_label)
+        start_time_editor_layout.addWidget(time_label)
 
-        self.time = TimeEditor(dialog, self.vlc_widget.player.get_length(), start,fps=self.vlc_widget.fps)
+        self.time = TimeEditor(dialog, self.vlc_widget.player.get_length(), self.vlc_widget.player.get_time(),fps=self.vlc_widget.fps)
         self.time.timechanged.connect(lambda: self.previewer1.preview_frame(self.time.get_time_in_milliseconds()))
-        layout.addWidget(self.time)   
 
+        # Label pour afficher l'image d'aperçu
         self.img1 = QLabel("", dialog)
         self.img1.setAlignment(Qt.AlignCenter)
-        layout.addWidget(self.img1)
-        self.previewer1 = FramePreviewer(self.img1, self.vlc_widget.fps, self.vlc_widget.path_of_media)
-        self.previewer1.preview_frame(self.time.get_time_in_milliseconds())  
+        start_time_editor_layout.addWidget(self.img1)
+        self.previewer1 = FramePreviewer(self.img1, self.vlc_widget.fps, self.vlc_widget.path_of_media)  
+        self.previewer1.preview_frame(self.time.get_time_in_milliseconds())   
+
+        start_time_editor_layout.addWidget(self.time)
+
+        interval_layout.addLayout(start_time_editor_layout)
+
+        end_time_editor_layout = QVBoxLayout()
 
         time_label2 = QLabel("Fin :", dialog)
-        layout.addWidget(time_label2)
+        end_time_editor_layout.addWidget(time_label2)
 
         self.time2 = TimeEditor(dialog, self.vlc_widget.player.get_length(), end ,fps=self.vlc_widget.fps)
         self.time2.timechanged.connect(lambda: self.previewer2.preview_frame(self.time2.get_time_in_milliseconds()))
-        layout.addWidget(self.time2) 
+        self.time.timechanged.connect(lambda: self.change_end_min_time(self.time.get_time_in_milliseconds())) 
 
         self.img2 = QLabel("", dialog)
         self.img2.setAlignment(Qt.AlignCenter)
-        layout.addWidget(self.img2)
-        self.previewer2 = FramePreviewer(self.img2, self.vlc_widget.fps, self.vlc_widget.path_of_media)
+        end_time_editor_layout.addWidget(self.img2)
+        self.previewer2 = FramePreviewer(self.img2, self.vlc_widget.fps, self.vlc_widget.path_of_media)   
         self.previewer2.preview_frame(self.time2.get_time_in_milliseconds())
 
-        self.time.timechanged.connect(lambda: self.change_end_min_time(self.time.get_time_in_milliseconds()))
+        end_time_editor_layout.addWidget(self.time2)
+        interval_layout.addLayout(end_time_editor_layout)
+        layout.addLayout(interval_layout)
+
+        space = QHBoxLayout()
+        load = QLabel("")
+        load.setAlignment(Qt.AlignCenter)
+        space.addWidget(load)
+        layout.addLayout(space)
 
         # Boutons OK et Annuler
         button_layout = QHBoxLayout()

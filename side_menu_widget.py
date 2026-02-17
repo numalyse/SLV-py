@@ -463,12 +463,63 @@ class SideMenuWidget(QDockWidget):
 
         layout = QVBoxLayout(dialog)
 
+        interval_layout = QHBoxLayout()
+
+        start_time_editor_layout = QVBoxLayout()
+
+        time_label = QLabel("Début :", dialog)
+        start_time_editor_layout.addWidget(time_label)
+
+        self.time = TimeEditor(dialog, self.vlc_widget.player.get_length(), self.vlc_widget.player.get_time(),fps=self.vlc_widget.fps)
+        self.time.timechanged.connect(lambda: self.previewer1.preview_frame(self.time.get_time_in_milliseconds()))
+
+        # Label pour afficher l'image d'aperçu
+        self.img1 = QLabel("", dialog)
+        self.img1.setAlignment(Qt.AlignCenter)
+        start_time_editor_layout.addWidget(self.img1)
+        self.previewer1 = FramePreviewer(self.img1, self.vlc_widget.fps, self.vlc_widget.path_of_media)  
+        self.previewer1.preview_frame(self.time.get_time_in_milliseconds())   
+
+        start_time_editor_layout.addWidget(self.time)
+
+        interval_layout.addLayout(start_time_editor_layout)
+
+        end_time_editor_layout = QVBoxLayout()
+
+        time_label2 = QLabel("Fin :", dialog)
+        end_time_editor_layout.addWidget(time_label2)
+
+        current_btn = self.get_current_button_data()
+
+        if current_btn is not None: # Si on est actuellement sur un plan, on initialise le time editor de fin à la fin de ce plan
+            self.time2 = TimeEditor(dialog, self.vlc_widget.player.get_length() , current_btn["end"],fps=self.vlc_widget.fps)
+            self.time2.timechanged.connect(lambda: self.previewer2.preview_frame(self.time2.get_time_in_milliseconds()))
+        else : # Sinon, on initialise le time editor de fin à 5 secondes du timecode actuel
+            self.time2 = TimeEditor(dialog, self.vlc_widget.player.get_length() , self.vlc_widget.player.get_time() + 5000,fps=self.vlc_widget.fps)
+            self.time2.timechanged.connect(lambda: self.previewer2.preview_frame(self.time2.get_time_in_milliseconds()))
+
+        self.time.timechanged.connect(lambda: self.change_end_min_time(self.time.get_time_in_milliseconds())) 
+
+        self.img2 = QLabel("", dialog)
+        self.img2.setAlignment(Qt.AlignCenter)
+        end_time_editor_layout.addWidget(self.img2)
+        self.previewer2 = FramePreviewer(self.img2, self.vlc_widget.fps, self.vlc_widget.path_of_media)   
+        self.previewer2.preview_frame(self.time2.get_time_in_milliseconds())
+
+        end_time_editor_layout.addWidget(self.time2)
+        interval_layout.addLayout(end_time_editor_layout)
+        layout.addLayout(interval_layout)
+
         # Zone de texte pour le nom
         name_label = QLabel("Nom du plan :", dialog)
-        layout.addWidget(name_label)
 
         name_input = QLineEdit(dialog)
-        layout.addWidget(name_input)
+
+        space = QHBoxLayout()
+        load = QLabel("")
+        load.setAlignment(Qt.AlignCenter)
+        space.addWidget(load)
+        layout.addLayout(space)
 
         # Change le background si du texte est présent ou pas
         default_style = name_input.styleSheet()
@@ -481,47 +532,13 @@ class SideMenuWidget(QDockWidget):
         name_input.textChanged.connect(_update_name_bg)
         _update_name_bg(name_input.text())
 
-        time_label = QLabel("Début :", dialog)
-        layout.addWidget(time_label)
-
-        self.time = TimeEditor(dialog, self.vlc_widget.player.get_length(), self.vlc_widget.player.get_time(),fps=self.vlc_widget.fps)
-        self.time.timechanged.connect(lambda: self.previewer1.preview_frame(self.time.get_time_in_milliseconds()))
-        layout.addWidget(self.time)   
-
-        # Label pour afficher l'image d'aperçu
-        self.img1 = QLabel("", dialog)
-        self.img1.setAlignment(Qt.AlignCenter)
-        layout.addWidget(self.img1)
-        self.previewer1 = FramePreviewer(self.img1, self.vlc_widget.fps, self.vlc_widget.path_of_media)  
-        self.previewer1.preview_frame(self.time.get_time_in_milliseconds())   
-
-        time_label2 = QLabel("Fin :", dialog)
-        layout.addWidget(time_label2)
-
-        current_btn = self.get_current_button_data()
-
-        if current_btn is not None: # Si on est actuellement sur un plan, on initialise le time editor de fin à la fin de ce plan
-            self.time2 = TimeEditor(dialog, self.vlc_widget.player.get_length() , current_btn["end"],fps=self.vlc_widget.fps)
-            self.time2.timechanged.connect(lambda: self.previewer2.preview_frame(self.time2.get_time_in_milliseconds()))
-            layout.addWidget(self.time2) 
-        else : # Sinon, on initialise le time editor de fin à 5 secondes du timecode actuel
-            self.time2 = TimeEditor(dialog, self.vlc_widget.player.get_length() , self.vlc_widget.player.get_time() + 5000,fps=self.vlc_widget.fps)
-            self.time2.timechanged.connect(lambda: self.previewer2.preview_frame(self.time2.get_time_in_milliseconds()))
-            layout.addWidget(self.time2)
-
-        self.time.timechanged.connect(lambda: self.change_end_min_time(self.time.get_time_in_milliseconds())) 
-
-        self.img2 = QLabel("", dialog)
-        self.img2.setAlignment(Qt.AlignCenter)
-        layout.addWidget(self.img2)
-        self.previewer2 = FramePreviewer(self.img2, self.vlc_widget.fps, self.vlc_widget.path_of_media)   
-        self.previewer2.preview_frame(self.time2.get_time_in_milliseconds()) 
-
         # Boutons OK et Annuler
         button_layout = QHBoxLayout()
         ok_button = NoFocusPushButton("OK", dialog)
         cancel_button = NoFocusPushButton("Annuler", dialog)
 
+        button_layout.addWidget(name_label)
+        button_layout.addWidget(name_input)
         button_layout.addWidget(ok_button)
         button_layout.addWidget(cancel_button)
         layout.addLayout(button_layout)
