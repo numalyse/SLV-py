@@ -124,7 +124,7 @@ class VLCMainWindow(QMainWindow):
         self.save_button.triggered.connect(self.save_action)
         self.save_button.setEnabled(False)
         self.vlc_widget.enable_segmentation.connect(self.save_button.setEnabled)
-        exit_action = QAction("Quitter\tCtrl+X", self)
+        exit_action = QAction("Quitter\tCtrl+Q", self)
         exit_action.triggered.connect(self.close)
 
         file_menu.addAction(open_action)
@@ -245,7 +245,7 @@ class VLCMainWindow(QMainWindow):
         self.open_shortcut = QShortcut(QKeySequence("Ctrl+A"), self)
         self.open_shortcut.activated.connect(self.open_project_action) 
 
-        self.quit_shortcut = QShortcut(QKeySequence("Ctrl+X"), self)
+        self.quit_shortcut = QShortcut(QKeySequence("Ctrl+Q"), self)
         self.quit_shortcut.activated.connect(self.close) 
 
         self.open_video_shortcut = QShortcut(QKeySequence("Ctrl+O"), self)

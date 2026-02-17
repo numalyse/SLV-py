@@ -208,13 +208,27 @@ class SideMenuWidget(QDockWidget):
         self.merge_right_button.setEnabled(right_enabled)
         self.merge_right_button.setStyleSheet("background-color: tomato; color: white; padding: 5px; border-radius: 5px;" if right_enabled else "background-color: gray; color: lightgray; padding: 5px; border-radius: 5px;")
 
+        found = False
         for seg in self.display.stock_button:
             if round(seg["time"]) <= round(current_time) < round(seg["end"]):
                 seg["rect"].setBrush(QBrush(QColor("red")))
                 self.set_position(seg["id"],go=False)
+                found = True
             else:
                 seg["rect"].setBrush(QBrush(seg["color"]))
         
+        if not found:
+            min_diff = float('inf')
+            closest_seg = None
+            for seg in self.display.stock_button:
+                diff = abs(seg["time"] - current_time)
+                if diff < min_diff:
+                    min_diff = diff
+                    closest_seg = seg
+        
+            if closest_seg:
+                closest_seg["rect"].setBrush(QBrush(QColor("red")))
+                self.set_position(closest_seg["id"],go=False)
 
     def get_current_button_data(self):
         """ 
