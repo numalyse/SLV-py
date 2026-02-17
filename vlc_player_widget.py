@@ -284,7 +284,6 @@ class VLCPlayerWidget(QWidget):
 
     def load_file(self,auto=True):
         self.pref_manager.load_preferences()
-        print(self.pref_manager.preferences)
         file_path, _ = QFileDialog.getOpenFileName(self, "Ouvrir une vidéo", self.pref_manager.preferences["open_video_path"], "Fichiers vidéo (*.mp4 *.avi *.mkv *.mov *.m4v)")
         if not file_path :
             return

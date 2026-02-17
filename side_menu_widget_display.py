@@ -1,4 +1,4 @@
-from PySide6.QtWidgets import QWidget, QVBoxLayout, QPushButton, QMenu, QInputDialog, QScrollArea, QDockWidget, QLabel, QDialog, QLineEdit, QSlider, QHBoxLayout, QSpinBox, QTextEdit, QFrame, QApplication, QSizePolicy, QFormLayout
+from PySide6.QtWidgets import QWidget, QVBoxLayout, QMessageBox, QPushButton, QMenu, QInputDialog, QScrollArea, QDockWidget, QLabel, QDialog, QLineEdit, QSlider, QHBoxLayout, QSpinBox, QTextEdit, QFrame, QApplication, QSizePolicy, QFormLayout
 from PySide6.QtGui import QAction
 from PySide6.QtCore import Qt, QTimer, Signal, QEvent
 
@@ -223,7 +223,7 @@ class SideMenuWidgetDisplay(QDockWidget):
 
         button_extract_plan = NoFocusPushButton("Extraire le plan", self)
         button_extract_plan.setStyleSheet("border: none; background-color: palette(base);")
-        button_extract_plan.clicked.connect(lambda _, btn=button: self.extract_action(btn))
+        button_extract_plan.clicked.connect(lambda _, btn=button: self.extract_confirm(btn))
         button_extract_plan.setFocusPolicy(Qt.NoFocus)
         frame_buttons_layout.addWidget(button_extract_plan)
 
@@ -269,7 +269,7 @@ class SideMenuWidgetDisplay(QDockWidget):
         menu.addAction(add_note_action)
 
         extract_action = QAction("Extraire le plan")
-        extract_action.triggered.connect(lambda: self.extract_action(button))
+        extract_action.triggered.connect(lambda: self.extract_confirm(button))
         menu.addAction(extract_action)
 
         # Vérifie si le plan n'est pas le premier dans la liste pour afficher l'option de concaténer avec le précédent
@@ -409,6 +409,17 @@ class SideMenuWidgetDisplay(QDockWidget):
                 note_widget.deleteLater()
                 break
         self.parent.emit_change()
+
+    def extract_confirm(self, button):
+        msg = QMessageBox(self)
+        msg.setWindowTitle("Extraire le plan")
+        msg.setText("Voulez-vous enregistrer le plan sélectionné ?")
+        msg.setIcon(QMessageBox.Question)
+        ok = msg.addButton("Oui", QMessageBox.ActionRole)
+        cancel = msg.addButton("Annuler", QMessageBox.ActionRole)
+        ok.clicked.connect(lambda _, btn=button : self.extract_action(btn))
+        cancel.clicked.connect(msg.close)
+        msg.show()
 
     #fonction 4 extraction
     def extract_action(self, button): 
