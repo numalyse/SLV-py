@@ -405,7 +405,8 @@ class SideMenuWidget(QDockWidget):
             closest_precedent["end"] = end
             self.change_rect(closest_precedent["rect"], closest_precedent["time"], end)
             closest_precedent["frame2"] = frame2
-            self.display.change_label_time(closest_precedent["label"], closest_precedent["time"], closest_precedent["end"])
+            #self.display.change_label_time(closest_precedent["label"], closest_precedent["time"], closest_precedent["end"])
+            self.display.change_frame(self.display.stock_button.index(closest_precedent), closest_precedent)
 
         self.recalc_all_buttons()
         self.display.update_label_numbering_shots()
@@ -426,7 +427,8 @@ class SideMenuWidget(QDockWidget):
             closest_suivant["time"] = time
             self.change_rect(closest_suivant["rect"], time, closest_suivant["end"])
             closest_suivant["frame1"] = frame1
-            self.display.change_label_time(closest_suivant["label"], closest_suivant["time"], closest_suivant["end"])
+            #self.display.change_label_time(closest_suivant["label"], closest_suivant["time"], closest_suivant["end"])
+            self.display.change_frame(self.display.stock_button.index(closest_suivant), closest_suivant)
 
         self.recalc_all_buttons()
         self.display.update_label_numbering_shots()
