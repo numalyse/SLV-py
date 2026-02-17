@@ -1,4 +1,4 @@
-from PySide6.QtWidgets import QDockWidget, QMainWindow, QToolBar, QWidget, QPushButton, QFileDialog, QMessageBox, QCheckBox, QDialog, QVBoxLayout, QLabel, QLineEdit,QMenu, QHBoxLayout, QButtonGroup, QRadioButton, QToolButton, QSlider
+from PySide6.QtWidgets import QDockWidget, QMainWindow, QToolBar, QWidget, QPushButton, QFileDialog, QMessageBox, QCheckBox, QDialog, QVBoxLayout, QLabel, QLineEdit,QMenu, QHBoxLayout, QButtonGroup, QRadioButton, QToolButton, QSlider, QFormLayout, QFrame, QSizePolicy, QScrollArea
 from PySide6.QtGui import QAction, QKeySequence, QShortcut, QActionGroup, QImage, QPixmap, QPalette
 from PySide6.QtCore import Qt, QTimer, Signal
 
@@ -180,7 +180,8 @@ class VLCMainWindow(QMainWindow):
         self.grille_button.setCheckable(True)
         self.grille_button.toggled.connect(self.grille_button_use)
         #outil_menu.addAction(self.grille_button)
-
+        
+        # Menu Paramètres
         option_menu= self.menu_bar.addMenu("Paramètres")
         self.capture_menu = QAction("Paramètres de capture", self)
         self.capture_menu.triggered.connect(self.capture_option)
@@ -191,12 +192,16 @@ class VLCMainWindow(QMainWindow):
         self.export_menu.triggered.connect(self.export_option)
         option_menu.addAction(self.export_menu)
 
+        # Menu Aide
         self.help_menu = self.menu_bar.addMenu("Aide")
         self.help_action = QAction("Aide", self)
+        self.shortcuts_action = QAction("Liste raccourcis", self)
         self.about_action = QAction("À propos", self)
         self.help_menu.addAction(self.help_action)
+        self.help_menu.addAction(self.shortcuts_action)
         self.help_menu.addAction(self.about_action)
         self.help_action.triggered.connect(self.help_action_dialog)
+        self.shortcuts_action.triggered.connect(self.help_shortcuts_dialog)
         self.about_action.triggered.connect(self.about_action_dialog)
 
 
@@ -902,25 +907,95 @@ class VLCMainWindow(QMainWindow):
         help_main_layout.addWidget(help_label)
 
         dialog.exec()
+
+    def shortcut_layout(self, shortcut="", name="",):
+        shortcut_frame = QFrame(self)
+        shortcut_frame.setSizePolicy(QSizePolicy.Preferred, QSizePolicy.Fixed)
+        shortcut_frame.setAutoFillBackground(True)
+        shortcut_frame.setStyleSheet("border: none; background-color: palette(base); padding: 1px; border-radius: 5px;")
+        shortcut_layout = QHBoxLayout(shortcut_frame)
+        shortcut_keyboard_label = QLabel(shortcut, shortcut_frame)
+        shortcut_name_label = QLabel(name, shortcut_frame)
+        shortcut_name_label.setStyleSheet("font-weight: bold;")
+        shortcut_name_label.setMinimumSize(250, 0)
+        shortcut_layout.addWidget(shortcut_name_label)
+        shortcut_layout.addWidget(shortcut_keyboard_label)
+        return shortcut_frame
+
+    def help_shortcuts_dialog(self):
+        dialog = QDialog(self)
+        dialog.setWindowTitle("Liste des raccourcis clavier")
+        help_main_layout = QVBoxLayout(dialog)
+        help_label = QLabel("Raccourcis clavier :")
+        help_main_layout.addWidget(help_label)
+
+        help_main_layout.addWidget(self.shortcut_layout("Ctrl+O", "Ouvrir une vidéo"))
+        help_main_layout.addWidget(self.shortcut_layout("Ctrl+A", "Ouvrir un projet"))
+        help_main_layout.addWidget(self.shortcut_layout("Ctrl+S", "Sauvegarder un projet"))
+        help_main_layout.addWidget(self.shortcut_layout("Ctrl+Q", "Quitter"))
+        help_main_layout.addWidget(self.shortcut_layout("F / Echap (quitter)", "Plein écran"))
+
+        help_player_label = QLabel("Mode Lecture")
+        help_main_layout.addWidget(help_player_label)
+        help_main_layout.addWidget(self.shortcut_layout("Espace", "Lecture/Pause"))
+        help_main_layout.addWidget(self.shortcut_layout("Flèche droite", "Avancer + 5 sec"))
+        help_main_layout.addWidget(self.shortcut_layout("Flèche gauche", "Reculer - 5 sec"))
+
+        help_segmentation_label = QLabel("Mode Segmentation")
+        help_main_layout.addWidget(help_segmentation_label)
+        help_main_layout.addWidget(self.shortcut_layout("Shift+Flèche droite", "Plan suivant"))
+        help_main_layout.addWidget(self.shortcut_layout("Shift+Flèche gauche", "Plan précédent"))
+
+        dialog.exec()
     
     def about_action_dialog(self):
         dialog = QDialog(self)
-        dialog.setFixedSize(300, 250)
+        dialog.setFixedSize(500, 250)
         dialog.setWindowTitle("À propos")
-        about_main_layout = QVBoxLayout(dialog)
-        about_title_label = QLabel("Super Lecteur Vidéo - SLV version 0.1 (17 Février 2026)")
+
+        dialog_layout = QVBoxLayout(dialog)
+        dialog_layout.setContentsMargins(0, 0, 0, 0)
+
+        scroll_area = QScrollArea(dialog)
+        scroll_area.setWidgetResizable(True)
+        scroll_area.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
+        scroll_area.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
+        scroll_area.setStyleSheet("border: none;")
+        dialog_layout.addWidget(scroll_area)
+
+        about_frame = QFrame(dialog)
+        about_frame.setAutoFillBackground(True)
+        about_frame.setStyleSheet("border: none; background-color: palette(base); padding: 1px; border-radius: 5px;")
+        scroll_area.setWidget(about_frame)
+
+        about_main_layout = QVBoxLayout(about_frame)
+
+        about_title_label = QLabel("Super Lecteur Vidéo - SLV")
+        #about_title_label.setMargin(5)
+        about_title_label.setAlignment(Qt.AlignCenter)
+        about_title_label.setStyleSheet("font-size: 18px; font-weight: bold;")
         about_main_layout.addWidget(about_title_label)
-        about_project_label = QLabel("Projet ANR Numalyse")
+
+        about_date_label = QLabel("Version 0.1 - 17 Février 2026 \n")
+        #about_date_label.setMargin(5)
+        about_date_label.setAlignment(Qt.AlignCenter)
+        about_date_label.setStyleSheet("font-weight: italic;")
+        about_main_layout.addWidget(about_date_label)
+
+        about_project_label = QLabel("Application développée dans le cadre du Projet ANR Numalyse")
+        about_project_label.setMargin(20)
+        about_project_label.setAlignment(Qt.AlignCenter)
         about_main_layout.addWidget(about_project_label)
-        about_credits = QLabel("- libvlc \n- ffmpeg \n- ...")
+
+        about_credits = QLabel("python-vlc (libvlc) \nffmpeg \nopencv-python \nmoviepy \nscenedetect \nodfpy \npython-docx \npython-pptx \nreportlab \npillow \nPySide6 \nscipy \nscikit-image")
         about_credits_checkbox = QCheckBox("Crédits")
         
         about_main_layout.addWidget(about_credits_checkbox)
         about_main_layout.addWidget(about_credits)
-        about_credits.hide()
+        about_credits.setVisible(False)
         about_credits_checkbox.checkStateChanged.connect(lambda : about_credits.setVisible(about_credits_checkbox.isChecked()))
-
-
+        
+        about_main_layout.addStretch()
 
         dialog.exec()
 
