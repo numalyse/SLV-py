@@ -170,8 +170,7 @@ class SideMenuWidgetDisplay(QDockWidget):
             name = "Plan " + f"{cpt+1}"
 
         # Affichage numérotation des plans
-        #numbering_name = f"[Plan n°{len(self.stock_button) + 1}]"
-        numbering_name = f"{len(self.stock_button) + 1}"
+        numbering_name = f"Plan n°{len(self.stock_button) + 1}"
         frame_name = QLabel(numbering_name, self)
         frame_name.setAlignment(Qt.AlignCenter)
         frame_name.setStyleSheet("border: none; background: transparent;")
@@ -661,3 +660,23 @@ class SideMenuWidgetDisplay(QDockWidget):
             self.parent.delate_button(btn)
 
 
+    def update_label_numbering_shots(self):
+        """Met à jour la numérotation des plans affichée dans les side menu widget"""
+        for i, btn_data in enumerate(self.stock_button):
+            numbering_name = f"Plan n°{i + 1}"
+            frame_layout = btn_data["frame"].layout()
+            for j in range(frame_layout.count()):
+                child = frame_layout.itemAt(j).widget()
+                if child is None:
+                    continue
+                for desc in child.findChildren(QWidget):
+                    if isinstance(desc, (MyLineEdit, QLineEdit)) and desc.text().startswith("Plan n°"):
+                        desc.setText(numbering_name)
+                        found = True
+                        break
+                    if isinstance(desc, QLabel) and desc.text().startswith("Plan n°"):
+                        desc.setText(numbering_name)
+                        found = True
+                        break
+                if found:
+                    break

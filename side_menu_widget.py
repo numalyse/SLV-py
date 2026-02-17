@@ -129,7 +129,7 @@ class SideMenuWidget(QDockWidget):
 
         self.split_button = NoFocusPushButton("Scinder le plan", self)
         self.split_button.setStyleSheet("background-color: purple; color: white; padding: 5px; border-radius: 5px;")
-        self.split_button.clicked.connect(self.split_plan)
+        self.split_button.clicked.connect(self.split_shot)
         self.split_button.setFixedHeight(40)
         self.buttons_layout.addWidget(self.split_button)
 
@@ -408,6 +408,7 @@ class SideMenuWidget(QDockWidget):
             self.display.change_label_time(closest_precedent["label"], closest_precedent["time"], closest_precedent["end"])
 
         self.recalc_all_buttons()
+        self.display.update_label_numbering_shots()
 
     def delate_button_suiv(self, button):
         time, end, frame1, frame2 = self.delate_button(button)
@@ -428,6 +429,7 @@ class SideMenuWidget(QDockWidget):
             self.display.change_label_time(closest_suivant["label"], closest_suivant["time"], closest_suivant["end"])
 
         self.recalc_all_buttons()
+        self.display.update_label_numbering_shots()
 
     def recalc_all_buttons(self):
         # Trie les segments par temps de début
@@ -562,6 +564,7 @@ class SideMenuWidget(QDockWidget):
             if name and 0<=new_time<=self.max_time:
                 self.display.adjust_neighbors(new_time,end_time)
                 self.add_new_button(name=name, time=new_time, end=end_time,frame1=frame1,frame2=frame2)
+                self.display.update_label_numbering_shots()
                 dialog.accept()
 
         ok_button.clicked.connect(on_ok)
@@ -573,7 +576,7 @@ class SideMenuWidget(QDockWidget):
         self.time2.on_new_min_value(min_time)
         self.previewer2.preview_frame(self.time2.get_time_in_milliseconds())
 
-    def split_plan(self, button):
+    def split_shot(self, button):
         button_to_split = self.get_current_button_data()
 
         if button_to_split is None:
@@ -591,10 +594,10 @@ class SideMenuWidget(QDockWidget):
         button_to_split["frame2"] = current_frame-1
         button_to_split["end"] = self.time_manager.frame_to_m(current_frame-1)
         button_to_split_id = self.display.stock_button.index(button_to_split)
-        
+
         self.display.change_frame(button_to_split_id, button_to_split)
 
-        #self.display.change_label_time(button_to_split["label"], button_to_split["time"], button_to_split["end"])
+        self.display.update_label_numbering_shots()
 
         self.display.reorganize_buttons()
 
