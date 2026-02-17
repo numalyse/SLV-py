@@ -150,6 +150,8 @@ class SideMenuWidget(QDockWidget):
         self.timer.timeout.connect(self.update_buttons_color)
         self.timer.start(50)  # actualisation toutes les 50 ms
 
+        self.previous_btn = None
+
         self.id_creation=0
 
 
@@ -580,7 +582,14 @@ class SideMenuWidget(QDockWidget):
         for i,btn_data in enumerate(self.display.stock_button):
             if btn_data["id"] == button:
                 time = btn_data["time"]
-                self.display.select_plan(i)
+                
+                if go == False:
+                    if self.previous_btn is not None and self.previous_btn != btn_data["button"]:
+                        self.previous_btn = btn_data["button"]
+                        self.display.select_plan(i)
+                    elif self.previous_btn == None:
+                        self.previous_btn = btn_data["button"]
+                        self.display.select_plan(i)
                 break
         if go:
             self.vlc_widget.set_position_timecode(time)
