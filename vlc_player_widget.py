@@ -211,10 +211,16 @@ class VLCPlayerWidget(QWidget):
         self.progress_slider = CustomSlider(Qt.Horizontal, self)
         self.progress_slider.setRange(0, 1000)
         self.progress_slider.sliderMoved.connect(self.set_position)
+        self.progress_slider.sliderMoved.connect(self.on_slider_value_change_time_edit)
         self.progress_slider.slider_mouse_clicked.connect(self.on_slider_clicked)
         self.progress_slider.slider_mouse_released.connect(self.on_slider_released)
         self.progress_slider.setEnabled(False)
         parent_layout.addWidget(self.progress_slider)
+
+    def on_slider_value_change_time_edit(self):
+        current_time = self.get_current_time()
+        current_time_str = self.time_manager.m_to_hmsf(current_time).replace(",",":")
+        self.line_edit.set_text(f"{current_time_str}")
 
     def toggle_play_pause(self):
         """ Joue ou met en pause la vidéo, ou demande un fichier si aucune vidéo chargée. """
