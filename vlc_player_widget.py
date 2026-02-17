@@ -13,8 +13,8 @@ import threading
 import ffmpeg
 from datetime import datetime
 from PySide6.QtWidgets import QWidget, QVBoxLayout, QHBoxLayout, QPushButton, QFrame, QFileDialog, QSlider, QLabel, QLineEdit
-from PySide6.QtCore import Qt, QTimer, Signal, QMetaObject, QObject
-from PySide6.QtGui import QKeySequence, QShortcut
+from PySide6.QtCore import Qt, QTimer, Signal, QMetaObject, QObject, QEvent
+from PySide6.QtGui import QKeySequence, QShortcut, QMouseEvent
 
 
 from preference_manager import PreferenceManager
@@ -64,6 +64,7 @@ class VLCPlayerWidget(QWidget):
         # Cadre vidéo
         self.video_frame = QFrame(self)
         self.video_frame.setStyleSheet("background-color: black;")
+        
         main_layout.addWidget(self.video_frame)
 
         # label pour afficher le nom de la vidéo
@@ -109,6 +110,7 @@ class VLCPlayerWidget(QWidget):
 
         self.estimated_time = None  # temps estimé après avance frame par frame
         self.setAcceptDrops(True) # Nécessaire pour le drag & drop
+        self.video_frame.installEventFilter(self)
 
     def display(self,visible):
         self.video_name_label.setVisible(visible)
@@ -616,6 +618,14 @@ class VLCPlayerWidget(QWidget):
         msg=MessagePopUp(self,txt="Capture vidéo enregistré dans SLV_Content/Captures_Vidéos")
         return capture_path
 
+    def eventFilter(self, obj, event):
+        print(obj)
+        if obj == self.media or obj == self.player or obj == self.video_frame:
+            if event.type() == QEvent.MouseButtonPress:
+                if isinstance(event, QMouseEvent) and event.button() == Qt.LeftButton:
+                    self.toggle_play_pause()
+        return super().eventFilter(obj, event)
+    
     def dragEnterEvent(self, event):
         # Accepter les fichiers droppés
         if self.test_video_drop(event) != None:
