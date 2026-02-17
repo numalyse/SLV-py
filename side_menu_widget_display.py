@@ -160,7 +160,7 @@ class SideMenuWidgetDisplay(QDockWidget):
         # ===== INFOS PLAN sur le volet droit =====
         # Création du cadre du volet pour regrouper le bouton et ses éléments associés
         frame = QFrame(self)
-        frame.setStyleSheet("border: 1px solid gray; padding: 5px; border-radius: 5px;")
+        #frame.setStyleSheet("border: 1px solid gray; padding: 5px; border-radius: 5px;")
         frame.setSizePolicy(QSizePolicy.Preferred, QSizePolicy.Fixed)
         frame_layout = QVBoxLayout(frame)
         
@@ -235,7 +235,6 @@ class SideMenuWidgetDisplay(QDockWidget):
         frame_buttons_layout.addWidget(button_next_plan, 0, 1)
 
         button_extract_plan = NoFocusPushButton("Extraire le plan", self)
-        button_extract_plan.setStyleSheet("border: none; background-color: palette(base);")
         button_extract_plan.clicked.connect(lambda _, btn=button: self.extract_confirm(btn))
         button_extract_plan.setFocusPolicy(Qt.NoFocus)
         frame_buttons_layout.addWidget(button_extract_plan, 1, 0)
