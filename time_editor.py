@@ -1,4 +1,4 @@
-from PySide6.QtWidgets import QWidget, QHBoxLayout, QLineEdit, QLabel, QGridLayout, QPushButton
+from PySide6.QtWidgets import QWidget, QHBoxLayout, QVBoxLayout, QLineEdit, QLabel, QGridLayout, QPushButton, QSlider
 from PySide6.QtCore import Qt, Signal
 from PySide6.QtGui import QIntValidator
 
@@ -15,6 +15,8 @@ class TimeEditor(QWidget):
         self.time = 0  # Temps en millisecondes
         self.frame = 0  # Compteur de frames
        
+        # Layout avec le slider en plus
+        self.main_and_slider_layout = QVBoxLayout(self)
 
         # Layout principal horizontal
         self.main_layout = QHBoxLayout(self)
@@ -114,6 +116,18 @@ class TimeEditor(QWidget):
         self.main_layout.addLayout(self.grid_layout)
         self.main_layout.addSpacing(40)
 
+        self.main_and_slider_layout.addLayout(self.main_layout)
+
+        self.slider = QSlider(Qt.Horizontal, self)
+        self.slider.setMaximum(max_time)
+        self.slider.setFixedWidth(300)
+        # Centrage du slider dans un layout horizontal
+        self.slider_layout = QHBoxLayout()
+        self.slider_layout.addStretch(1)
+        self.slider_layout.addWidget(self.slider)
+        self.slider_layout.addStretch(1)
+        self.main_and_slider_layout.addLayout(self.slider_layout)
+
         # Connexion des signaux pour mettre à jour le temps lors de l'édition
         self.hours_edit.textChanged.connect(self.on_time_edited)
         self.minutes_edit.textChanged.connect(self.on_time_edited)
@@ -129,6 +143,7 @@ class TimeEditor(QWidget):
         self.minus_seconds_button.clicked.connect(self.on_minus_seconds)
         self.plus_frames_button.clicked.connect(self.on_plus_frame) # La connexion du signal ne peut pas prendre de paramètre donc on utilise une fonction intermédiaire
         self.minus_frames_button.clicked.connect(self.on_minus_frame)
+        self.slider.valueChanged.connect(self.on_slider_value_changed)
 
         # Initialisation de l'affichage du temps
         if time > -1:
@@ -148,6 +163,7 @@ class TimeEditor(QWidget):
         self.minutes_edit.blockSignals(True)
         self.seconds_edit.blockSignals(True)
         self.frames_edit.blockSignals(True)
+        self.slider.blockSignals(True)
         """
         Met à jour le temps interne et l'affichage des zones de texte.
         """
@@ -165,11 +181,13 @@ class TimeEditor(QWidget):
             self.minutes_edit.setText(f"{minutes:02}")
             self.seconds_edit.setText(f"{seconds:02}")
             self.frames_edit.setText(f"{frames:02}")
+            self.slider.setValue(self.time)
 
         self.hours_edit.blockSignals(False)
         self.minutes_edit.blockSignals(False)
         self.seconds_edit.blockSignals(False)
         self.frames_edit.blockSignals(False)
+        self.slider.blockSignals(False)
 
     def set_time_unedited(self, hours, minutes, seconds, frames):
         """ Formattage du temps dans les zones LineEdit sans calcul du temps total """
@@ -271,3 +289,7 @@ class TimeEditor(QWidget):
         if self.time < value:
             self.set_time(value)
             self.on_plus_frames()
+
+    def on_slider_value_changed(self, value):
+        self.set_time(value)
+        self.timechanged.emit()
