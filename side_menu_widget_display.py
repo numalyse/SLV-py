@@ -527,11 +527,12 @@ class SideMenuWidgetDisplay(QDockWidget):
                 return
             new_time = self.time.get_time_in_milliseconds()
             end_time = self.time2.get_time_in_milliseconds()
-            for btn_data in self.stock_button:
+            for i, btn_data in enumerate(self.stock_button):
                 if btn_data["button"] == button:
-                    btn_data["time"] = new_time
-                    btn_data["end"] = end_time
-                    self.change_label_time(btn_data["label"],new_time,end_time)
+                    self.stock_button[i]["time"] = new_time
+                    self.stock_button[i]["end"] = end_time
+                    #self.change_label_time(btn_data["label"],new_time,end_time)
+                    self.change_frame(i, btn_data)
                     self.parent.change_rect(btn_data["rect"],new_time,end_time)
             self.adjust_neighbors(new_time,end_time)
             self.reorganize_buttons()
@@ -613,7 +614,7 @@ class SideMenuWidgetDisplay(QDockWidget):
         frame2 = self.parent.get_frame(new_end_time)
         tab_suppr = []
         
-        for btn_data in self.stock_button:
+        for i, btn_data in enumerate(self.stock_button):
             # Ignorer le bouton qui a exactement les mêmes bornes que le nouveau bouton
             if btn_data["time"] == new_time and btn_data["end"] == new_end_time:
                 continue
@@ -625,7 +626,8 @@ class SideMenuWidgetDisplay(QDockWidget):
                 btn_data["end"] = new_time
                 btn_data["frame2"] = frame1
                 self.parent.change_rect(btn_data["rect"], btn_data["time"], new_time)
-                self.change_label_time(btn_data["label"], btn_data["time"], new_time)
+                #self.change_label_time(btn_data["label"], btn_data["time"], new_time)
+                self.change_frame(i, btn_data)
                 
                 # Et on crée un nouveau bouton pour la partie après
                 # On suppose ici que btn_data possède une clé "name" à réutiliser, sinon vous pouvez passer un nom souhaité.
@@ -643,7 +645,8 @@ class SideMenuWidgetDisplay(QDockWidget):
                         btn_data["time"] = new_end_time
                         btn_data["frame1"] = frame2
                         self.parent.change_rect(btn_data["rect"], new_end_time, btn_data["end"])
-                        self.change_label_time(btn_data["label"], new_end_time, btn_data["end"])
+                        #self.change_label_time(btn_data["label"], new_end_time, btn_data["end"])
+                        self.change_frame(i, btn_data)
                     else:
                         tab_suppr.append(btn_data["button"])
                 # Cas où le bouton existant se termine dans l'intervalle du nouveau bouton
@@ -652,7 +655,8 @@ class SideMenuWidgetDisplay(QDockWidget):
                         btn_data["end"] = new_time
                         btn_data["frame2"] = frame1
                         self.parent.change_rect(btn_data["rect"], btn_data["time"], new_time)
-                        self.change_label_time(btn_data["label"], btn_data["time"], new_time)
+                        #self.change_label_time(btn_data["label"], btn_data["time"], new_time)
+                        self.change_frame(i, btn_data)
                     else:
                         tab_suppr.append(btn_data["button"])
                         
