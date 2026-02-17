@@ -18,27 +18,35 @@ from frame_previewer import FramePreviewer
 from export_manager import ExportManager
 
 class MyTextEdit(QTextEdit):
+
+    SignalFocusIn = Signal()
+    SignalFocusOut = Signal()
+
     def __init__(self, parent=None):
         super().__init__(parent)
         self.installEventFilter(self)
 
     def eventFilter(self, source, event):
+        if event.type() == QEvent.FocusIn and source is self:
+            self.SignalFocusIn.emit()
         if event.type() == QEvent.FocusOut and source is self:
-            new_focus = QApplication.focusWidget()
-            if not isinstance(new_focus, (MyTextEdit, MyLineEdit)):
-                QTimer.singleShot(0, self.setFocus)
+            self.SignalFocusOut.emit()
         return super().eventFilter(source, event)
     
 class MyLineEdit(QLineEdit):
+
+    SignalFocusIn = Signal() 
+    SignalFocusOut = Signal()
+
     def __init__(self, parent=None):
         super().__init__(parent)
         self.installEventFilter(self)
 
     def eventFilter(self, source, event):
+        if event.type() == QEvent.FocusIn and source is self:
+            self.SignalFocusIn.emit()
         if event.type() == QEvent.FocusOut and source is self:
-            new_focus = QApplication.focusWidget()
-            if not isinstance(new_focus, (MyTextEdit, MyLineEdit)):
-                QTimer.singleShot(0, self.setFocus)
+            self.SignalFocusOut.emit()
         return super().eventFilter(source, event)
 
 
@@ -127,10 +135,15 @@ class SideMenuWidgetDisplay(QDockWidget):
         name_label = QLabel(name, background_frame)
         name_label.setAlignment(Qt.AlignLeft)
         name_label.setStyleSheet("font-weight: bold;")
+
         name_input = MyLineEdit(background_frame)
         name_input.setText(text)
         name_input.setReadOnly(not modifiable)
         name_input.setAlignment(Qt.AlignRight)
+        
+        if modifiable:
+            name_input.SignalFocusIn.connect(lambda: self.vlc_widget.pause_video())
+            name_input.SignalFocusOut.connect(lambda: self.vlc_widget.play_video())
 
         background_layout.addRow(name_label, name_input)
 
@@ -330,6 +343,8 @@ class SideMenuWidgetDisplay(QDockWidget):
         note_widget.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
         #note_widget.setContextMenuPolicy(Qt.CustomContextMenu)
         #note_widget.customContextMenuRequested.connect(lambda pos: self.show_note_context_menu(note_widget, pos))
+        note_widget.SignalFocusIn.connect(lambda: self.vlc_widget.pause_video())
+        note_widget.SignalFocusOut.connect(lambda: self.vlc_widget.play_video())
 
         note_frame = QFrame(self)
         note_frame.setFixedSize(285, 200)
