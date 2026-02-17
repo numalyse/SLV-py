@@ -2,6 +2,8 @@ from PySide6.QtWidgets import QWidget, QMessageBox, QLabel, QPushButton
 from PySide6.QtCore import Qt, QTimer
 from PySide6.QtGui import QFont
 import os
+import platform
+import subprocess
 from pathlib import Path
 
 class MessagePopUp(QWidget):  
@@ -60,7 +62,12 @@ class MessagePopUp(QWidget):
 
     def open_capture_folder(self):
         capture_dir = os.path.join(str(Path.home()), "SLV_Content", "Captures_Vidéos")
-        os.startfile(capture_dir)
+        if platform.system() == "Windows":
+            os.startfile(capture_dir)
+        elif platform.system() == "Darwin": 
+            subprocess.run(["open", capture_dir])
+        else:
+            subprocess.run(["xdg-open", capture_dir])
 
 
     def hide_message(self):
