@@ -660,7 +660,7 @@ class VLCMainWindow(QMainWindow):
                 # Ajoute un bouton qui fait la taille de la vidéo
                 video_length = self.vlc_widget.player.get_length()
                 last_frame = self.vlc_widget.get_number_of_frames()
-                self.side_menu.add_new_button( "Plan 1", 0, video_length, 0, last_frame)
+                self.side_menu.add_new_button( name="Plan 1", time=0, end=video_length, frame1=0, frame2=last_frame)
 
         else:
             self.update_seg_mode(False)
