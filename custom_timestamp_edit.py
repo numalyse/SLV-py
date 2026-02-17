@@ -15,6 +15,7 @@ class CustomTimestampEdit(QWidget):
         self.timestamp_edit = QLineEdit()
         self.ok_button = QPushButton("OK") # peut-être un NoFocusPushButton
         self.ok_button.setFixedWidth(40)
+        self.ok_button.clicked.connect(self.finish_edit)
         self.setFixedWidth(120)
         self.timestamp_edit.setText("00:00:00[00]")
         # self.timestamp_edit.setAlignment(Qt.AlignCenter)
