@@ -141,6 +141,8 @@ class VLCMainWindow(QMainWindow):
         self.sync_mode_button = QAction("Lecture Synchronisée", self)
         sync_mode_action = self.sync_mode_button
         sync_mode_action.triggered.connect(self.sync_button_use)
+        self.sync_mode_button.setCheckable(True)
+        self.sync_mode_button.setChecked(False)
         mode_menu.addAction(sync_mode_action)
         mode_menu.addSeparator()
 
@@ -155,6 +157,8 @@ class VLCMainWindow(QMainWindow):
         self.seg_mode_action = QAction("Segmentation", self)
         self.seg_mode_action.triggered.connect(self.seg_button_use)
         self.seg_mode_action.setEnabled(False)
+        self.seg_mode_action.setCheckable(True)
+        self.seg_mode_action.setChecked(False)
         self.vlc_widget.enable_segmentation.connect(self.seg_mode_action.setEnabled)
         outil_menu.addAction(self.seg_mode_action)
         outil_menu.addSeparator()
@@ -579,11 +583,11 @@ class VLCMainWindow(QMainWindow):
 
                 #self.vlc_widget.enable_segmentation.emit(False) # Desactive les boutons de capture ect.
 
-                self.sync_mode_button.setText("Lecture Synchronisée")
+                self.sync_mode_button.setChecked(False)
                 self.recreate_window()
             else:
                 
-                self.sync_mode_button.setText("Quitter la Lecture Synchronisée")
+                self.sync_mode_button.setChecked(True)
                 self.remove_quit_button()
                 #self.capture_video_button.setEnabled(False)
                 self.sync_mode = True
@@ -609,7 +613,7 @@ class VLCMainWindow(QMainWindow):
                                        
                 else:
                     self.sync_mode=False
-                    self.sync_mode_button.setText("Lecture Synchronisée")
+                    self.sync_mode_button.setChecked(False)
 
     def create_sync_window(self):
         self.sync_widget.enable_segmentation.connect(self.capture_button.setEnabled)
@@ -1099,9 +1103,5 @@ class VLCMainWindow(QMainWindow):
     
     def update_seg_mode(self, state):
         """ Met à jour le mode de segmentation et le texte du bouton en fonction de l'état. """
-        if state:
-            self.seg_mode=True
-            self.seg_mode_action.setText("Quitter la Segmentation")
-        else:
-            self.seg_mode=False
-            self.seg_mode_action.setText("Segmentation")
+        self.seg_mode=state
+        self.seg_mode_action.setChecked(state)
