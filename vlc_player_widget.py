@@ -448,6 +448,8 @@ class VLCPlayerWidget(QWidget):
         timecode = self.time_manager.sanitize_timecodename(raw_timecode)
         #framenumber = self.time_manager.m_to_frame(self.player.get_time())
 
+        capture_path_str = ""
+
         # Définir le chemin du fichier en fonction du format
         if name :
             capture_path = os.path.join(self.capture_dir, f"{file_name}_{timecode}_{name}.png")

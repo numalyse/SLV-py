@@ -280,7 +280,8 @@ class SyncWidget(QWidget):
 
         # Capture des screenshots et ajout des chemins d'accès
         for i in range(self.num_windows):
-            img_path,ts = self.player_widgets[i].capture_screenshot(i,post_traitement,format_capture)
+            print(self.player_widgets[i].capture_screenshot(i,post_traitement,format_capture))
+            img_path,ts, _, _ = self.player_widgets[i].capture_screenshot(i,post_traitement,format_capture)
             if img_path:
                 images.append(img_path)
             if ts:
