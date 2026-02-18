@@ -980,7 +980,7 @@ class VLCMainWindow(QMainWindow):
         about_title_label.setStyleSheet("font-size: 18px; font-weight: bold;")
         about_main_layout.addWidget(about_title_label)
 
-        about_date_label = QLabel("Version 0.1 - 17 Février 2026 \n")
+        about_date_label = QLabel("Version 0.2 - 17 Février 2026 \n")
         #about_date_label.setMargin(5)
         about_date_label.setAlignment(Qt.AlignCenter)
         about_date_label.setStyleSheet("font-weight: italic;")
