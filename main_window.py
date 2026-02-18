@@ -141,6 +141,8 @@ class VLCMainWindow(QMainWindow):
         self.sync_mode_button = QAction("Lecture Synchronisée", self)
         sync_mode_action = self.sync_mode_button
         sync_mode_action.triggered.connect(self.sync_button_use)
+        self.sync_mode_button.setCheckable(True)
+        self.sync_mode_button.setChecked(False)
         mode_menu.addAction(sync_mode_action)
         mode_menu.addSeparator()
 
@@ -579,11 +581,11 @@ class VLCMainWindow(QMainWindow):
 
                 #self.vlc_widget.enable_segmentation.emit(False) # Desactive les boutons de capture ect.
 
-                self.sync_mode_button.setText("Lecture Synchronisée")
+                self.sync_mode_button.setChecked(False)
                 self.recreate_window()
             else:
                 
-                self.sync_mode_button.setText("Quitter la Lecture Synchronisée")
+                self.sync_mode_button.setChecked(True)
                 self.remove_quit_button()
                 #self.capture_video_button.setEnabled(False)
                 self.sync_mode = True
@@ -609,7 +611,7 @@ class VLCMainWindow(QMainWindow):
                                        
                 else:
                     self.sync_mode=False
-                    self.sync_mode_button.setText("Lecture Synchronisée")
+                    self.sync_mode_button.setChecked(False)
 
     def create_sync_window(self):
         self.sync_widget.enable_segmentation.connect(self.capture_button.setEnabled)
