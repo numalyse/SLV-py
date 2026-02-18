@@ -614,6 +614,8 @@ class VLCMainWindow(QMainWindow):
                 else:
                     self.sync_mode=False
                     self.sync_mode_button.setChecked(False)
+        else:
+            self.sync_mode_button.setChecked(self.sync_mode)
 
     def create_sync_window(self):
         self.sync_widget.enable_segmentation.connect(self.capture_button.setEnabled)
@@ -980,7 +982,7 @@ class VLCMainWindow(QMainWindow):
         about_title_label.setStyleSheet("font-size: 18px; font-weight: bold;")
         about_main_layout.addWidget(about_title_label)
 
-        about_date_label = QLabel("Version 0.2 - 17 Février 2026 \n")
+        about_date_label = QLabel("Version 0.2 - 18 Février 2026 \n")
         #about_date_label.setMargin(5)
         about_date_label.setAlignment(Qt.AlignCenter)
         about_date_label.setStyleSheet("font-weight: italic;")
