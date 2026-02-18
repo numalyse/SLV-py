@@ -67,12 +67,16 @@ class TimeEditor(QWidget):
         self.grid_layout_seconds.setSpacing(1)
 
         self.plus_hours_button = NoFocusPushButton("+", self)
+        self.plus_hours_button.setFocusPolicy(Qt.NoFocus)
         self.plus_hours_button.setFixedSize(40, 30)
         self.plus_minutes_button = NoFocusPushButton("+", self)
+        self.plus_minutes_button.setFocusPolicy(Qt.NoFocus)
         self.plus_minutes_button.setFixedSize(40, 30)
         self.plus_seconds_button = NoFocusPushButton("+", self)
+        self.plus_seconds_button.setFocusPolicy(Qt.NoFocus)
         self.plus_seconds_button.setFixedSize(40, 30)
         self.plus_frames_button = NoFocusPushButton("+", self)
+        self.plus_frames_button.setFocusPolicy(Qt.NoFocus)
         self.plus_frames_button.setFixedSize(40, 30)
 
         self.frames_edit = QLineEdit(self)
@@ -82,12 +86,16 @@ class TimeEditor(QWidget):
         self.frames_edit.setStyleSheet("font-size: 16px;")
 
         self.minus_hours_button = NoFocusPushButton("-", self)
+        self.minus_hours_button.setFocusPolicy(Qt.NoFocus)
         self.minus_hours_button.setFixedSize(40, 30)
         self.minus_minutes_button = NoFocusPushButton("-", self)
+        self.minus_minutes_button.setFocusPolicy(Qt.NoFocus)
         self.minus_minutes_button.setFixedSize(40, 30)
         self.minus_seconds_button = NoFocusPushButton("-", self)
+        self.minus_seconds_button.setFocusPolicy(Qt.NoFocus)
         self.minus_seconds_button.setFixedSize(40, 30)
         self.minus_frames_button = NoFocusPushButton("-", self)
+        self.minus_frames_button.setFocusPolicy(Qt.NoFocus)
         self.minus_frames_button.setFixedSize(40, 30)
         
         self.grid_layout_hours.addWidget(self.plus_hours_button)
