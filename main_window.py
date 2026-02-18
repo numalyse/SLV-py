@@ -1094,6 +1094,10 @@ class VLCMainWindow(QMainWindow):
             urls = mime_data.urls()
             for url in urls:
                 project_path = url.toLocalFile()
+                
+                if platform.system() == "Darwin":
+                    project_path = project_path[:-1]
+                
                 is_valid = check_project_validity(project_path)
                 if is_valid:
                     self.load_project_from_path(project_path)
