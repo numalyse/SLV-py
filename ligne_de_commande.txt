@@ -5,4 +5,8 @@ python3 -m PyInstaller main.py   --name "SLV (INTEL - macOS 13+) (dev version)" 
 
 
 WINDOWS VERSION :
-pyinstaller main.py --name "SLV (Windows) (dev version)" --onefile --windowed --icon=icon/icon3.ico --collect-all moviepy --collect-all proglog --hidden-import=cv2 --hidden-import=cv2.data --hidden-import=skimage --noconfirm
+pyinstaller main.py --name "SLV (Windows) (dev version)" --onefile --windowed --icon=icon/numalyse_logo.ico --add-data ".\logo\numalyse_logo.png;logo --collect-all moviepy --collect-all proglog --hidden-import=cv2 --hidden-import=cv2.data --hidden-import=skimage --noconfirm
+
+
+
+py -m PyInstaller main.py --name "SLV (Windows) (dev version)" --onefile --windowed --icon=icon/numalyse_logo.ico --add-data ".\icon\numalyse_logo.png;icon" --add-binary "ffmpeg.exe;." --collect-all moviepy --collect-all proglog --collect-all imageio --hidden-import=cv2 --hidden-import=cv2.data --hidden-import=skimage --noconfirm

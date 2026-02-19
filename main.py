@@ -52,11 +52,30 @@ from PySide6.QtGui import QIcon, QPalette
 from PySide6.QtCore import Qt
 from main_window import VLCMainWindow
 
+
+def resource_path(relative_path):
+    try:
+        base_path = sys._MEIPASS
+    except Exception:
+        base_path = os.path.abspath('.')
+    return os.path.join(base_path, relative_path)
+
+
 if __name__ == "__main__":
     app = QApplication(sys.argv)
 
+
+    logo_path = resource_path('icon/numalyse_logo.png')
+
+
     app.setApplicationName("SLV")
-    app.setWindowIcon(QIcon("icon/numalyse_logo.ico"))
+
+    try:
+        app.setWindowIcon(QIcon(logo_path))
+    except Exception:
+        pass
+
+    #app.setWindowIcon(QIcon("icon/numalyse_logo.ico"))
 
     # app.setStyle("Fusion")
 
@@ -76,10 +95,15 @@ if __name__ == "__main__":
 
     # app.setPalette(palette)
 
-    window = VLCMainWindow()
+    window = VLCMainWindow(logo_path)
     window.show()
-    sys.exit(app.exec())
 
+    try:
+        window.setWindowIcon(QIcon(logo_path))
+    except Exception:
+        pass
+
+    sys.exit(app.exec())
 
 
 # pyinstaller --name "SLV" --windowed --icon=icon/icon3.ico --exclude PyQt5 --exclude PyQt6 --onefile \

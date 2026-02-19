@@ -1,7 +1,7 @@
 # -*- mode: python ; coding: utf-8 -*-
 from PyInstaller.utils.hooks import collect_all
 
-datas = []
+datas = [('.\\icon\\numalyse_logo.png', 'icon')]
 binaries = [('ffmpeg.exe', '.')]
 hiddenimports = ['cv2', 'cv2.data', 'skimage']
 tmp_ret = collect_all('moviepy')

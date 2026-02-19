@@ -1,5 +1,5 @@
 from PySide6.QtWidgets import QDockWidget, QMainWindow, QToolBar, QWidget, QPushButton, QFileDialog, QMessageBox, QCheckBox, QDialog, QVBoxLayout, QLabel, QLineEdit,QMenu, QHBoxLayout, QButtonGroup, QRadioButton, QToolButton, QSlider, QFormLayout, QFrame, QSizePolicy, QScrollArea
-from PySide6.QtGui import QAction, QKeySequence, QShortcut, QActionGroup, QImage, QPixmap, QPalette
+from PySide6.QtGui import QAction, QKeySequence, QShortcut, QActionGroup, QImage, QPixmap, QPalette, QIcon
 from PySide6.QtCore import Qt, QTimer, Signal
 
 from vlc_player_widget import VLCPlayerWidget
@@ -32,9 +32,10 @@ class VLCMainWindow(QMainWindow):
     # Signal pour quitter le mode plein écran d'un seul player
     quit_one_player_full_screen_signal = Signal(bool)
 
-    def __init__(self):
+    def __init__(self, logo_path):
         super().__init__()
         self.setWindowTitle("SLV (version en développement)")
+        self.setWindowIcon(QIcon(logo_path))
         self.setGeometry(100, 100, 1400, 1200)
         self.showMaximized()
         #self.showFullScreen() #enlève la barre menu etc
