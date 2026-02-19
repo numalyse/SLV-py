@@ -56,7 +56,7 @@ if __name__ == "__main__":
     app = QApplication(sys.argv)
 
     app.setApplicationName("SLV")
-    app.setWindowIcon(QIcon("icon/icon3.ico"))
+    app.setWindowIcon(QIcon("icon/numalyse_logo.ico"))
 
     # app.setStyle("Fusion")
 
