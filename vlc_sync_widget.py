@@ -116,7 +116,7 @@ class SyncWidget(QWidget):
         rows, cols = (1, 2) if self.num_windows == 2 else (2, 2)
 
         for i in range(self.num_windows):
-            player = VLCPlayerWidget(self, True,True,True,False)
+            player = VLCPlayerWidget(self, True,True,i!=0,False)
             player.begin=False
             player.enable_load.connect(self.cpt_load_action)
             player.full_screen_requested.connect(self.full_screen_one_player) # si on recoit le signal de plein écran d'un player, on affiche que ce player et on cache les autres
