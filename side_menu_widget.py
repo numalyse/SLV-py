@@ -538,6 +538,7 @@ class SideMenuWidget(QDockWidget):
         name_label = QLabel("Nom du plan :", dialog)
 
         name_input = QLineEdit(dialog)
+        name_input.setText("Nouveau Plan")
 
         space = QHBoxLayout()
         load = QLabel("")
