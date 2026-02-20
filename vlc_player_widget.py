@@ -106,9 +106,12 @@ class VLCPlayerWidget(QWidget):
         self.fps=25
 
         self.full_screen=False
+        self.loop = True
 
         self.estimated_time = None  # temps estimé après avance frame par frame
         self.setAcceptDrops(True) # Nécessaire pour le drag & drop
+
+
 
     def display(self,visible):
         self.video_name_label.setVisible(visible)
@@ -152,7 +155,19 @@ class VLCPlayerWidget(QWidget):
         self.full_screen_button.clicked.connect(self.full_screen_action)
         self.button_layout.addWidget(self.full_screen_button)
 
+        self.loop_button = NoFocusPushButton("🔁 Boucle", self)
+        self.loop_button.clicked.connect(self.toggle_loop)
+        self.loop_button.setStyleSheet("background-color: lightblue;")
+        self.button_layout.addWidget(self.loop_button)
+
         parent_layout.addLayout(self.button_layout)
+
+    def toggle_loop(self):
+        self.loop = not self.loop
+        if self.loop:
+            self.loop_button.setStyleSheet("background-color: lightblue;")
+        else:
+            self.loop_button.setStyleSheet("")
 
     def create_keyboard(self):
         self.play_pause_shortcut = QShortcut(QKeySequence("Space"), self)
@@ -335,6 +350,7 @@ class VLCPlayerWidget(QWidget):
             self.timer.start()  
 
             self.update_video_name()
+            self.video_name_label.setVisible(not self.full_screen)
 
             # si on est dans un lecteur sync mode, on veut que le slider soit à jour et que la vidéo soit prête à être jouée, 
             # mais on ne veut pas que la vidéo commence à jouer automatiquement
@@ -379,8 +395,7 @@ class VLCPlayerWidget(QWidget):
     def stop_video(self):
         self.estimated_time = None
         """ Remet la vidéo à 00:00:00 et pause la lecture. """
-        self.restart_video()
-        self.pause_video()
+        self.restart_video(False) # remet la vidéo à 0 et force la pause directement après le chargement
 
 
     def eject_video(self, use_stop = True):
@@ -424,18 +439,22 @@ class VLCPlayerWidget(QWidget):
             self.player.set_media(None)
 
 
-    def restart_video(self):
-        self.player.stop()
-        self.media = None
-        if self.ac : 
+    def restart_video(self, auto_play=True):
+        if auto_play: 
+            self.player.set_media(None)
+            self.player.set_media(self.media)
+            self.player.set_time(0)
+            self.player.play()
+        else :
+            self.player.stop()
+            self.player.set_media(None)
+            self.player.set_media(self.media)
+            self.player.set_time(0)
+            self.player.play()
             self.play_pause_button.setText("⏯️ Lire")
-        self.timer.stop()
-        self.progress_slider.setValue(0)
-        self.progress_slider.setEnabled(False)
-        self.time_label.setText("00:00:00 / 00:00:00")
-        self.time_label.setStyleSheet("color: white;")
-        self.estimated_time = None
-        self.load_video(self.path_of_media,False)
+            self.player.set_pause(1)
+
+        self.estimated_time = None 
 
     def capture_screenshot(self, name="",post_traitement=False,format_capture=False,gamma=1.4):
         """ Capture un screenshot de la vidéo. """
@@ -524,7 +543,7 @@ class VLCPlayerWidget(QWidget):
             self.line_edit.blockSignals(False)
 
         if self.player.get_state()==6 :
-            self.restart_video()
+            self.restart_video(self.loop) # si la vidéo est à la fin et que le mode boucle est activé, recommence la vidéo, sinon remet la vidéo à 0 et pause
 
     def set_position(self, position):
         """ Définit la position de lecture en fonction du slider. """
