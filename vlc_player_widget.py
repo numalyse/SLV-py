@@ -38,7 +38,7 @@ class VLCPlayerWidget(QWidget):
     previous_slider_pos = 0
     ts_was_video_playing = False
 
-    def __init__(self, parent=None,add_controls=False,add_window_time=True,m=True,c=True):
+    def __init__(self, parent=None,add_controls=False,add_window_time=True,m=False,c=True):
         super().__init__(parent)
         self.parent_element = parent
         self.instance = vlc.Instance("--quiet --aout=directsound")
@@ -191,13 +191,13 @@ class VLCPlayerWidget(QWidget):
         self.time_label.setFixedHeight(15)
 
         self.speed_button = PlaybackSpeedButton(parent=self)
-
         self.mute_button = NoFocusPushButton("🔇" if self.mute else "🔊", self)
-        self.mute_button.setCheckable(True)
-        self.mute_button.setChecked(self.mute)  # Définit l'état initial du bouton
+        # self.mute_button.setCheckable(True)
+        # self.mute_button.setChecked(self.mute)  # Définit l'état initial du bouton
 
         self.mute_button.setFixedSize(30, 30)
-        self.mute_button.setCheckable(True)
+        
+        self.mute_button.setCheckable(False)
         self.mute_button.clicked.connect(self.toggle_mute)  
 
         # Ajouter les éléments au layout
