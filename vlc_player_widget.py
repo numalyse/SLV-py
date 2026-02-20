@@ -290,7 +290,7 @@ class VLCPlayerWidget(QWidget):
 
     def load_file(self,auto=True):
         self.pref_manager.load_preferences()
-        file_path, _ = QFileDialog.getOpenFileName(self, "Ouvrir une vidéo", self.pref_manager.preferences["open_video_path"], "Fichiers vidéo (*.mp4 *.avi *.mkv *.mov *.m4v)")
+        file_path, _ = QFileDialog.getOpenFileName(self, "Ouvrir une vidéo", self.pref_manager.preferences["open_video_path"], "Fichiers vidéo (*.mp4 *.avi *.mkv *.mov *.m4v *.vob)")
         if not file_path :
             return
         self.pref_manager.change_preference("open_video_path", file_path)
@@ -642,7 +642,7 @@ class VLCPlayerWidget(QWidget):
                 urls = mime_data.urls()
                 for url in urls:
                     file_path = url.toLocalFile()
-                    if file_path.lower().endswith(('.mp4', '.avi', '.mkv', '.mov', '.m4v')):
+                    if file_path.lower().endswith(('.mp4', '.avi', '.mkv', '.mov', '.m4v', '.vob')):
                         return file_path
         return
 
