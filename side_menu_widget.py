@@ -106,6 +106,7 @@ class SideMenuWidget(QDockWidget):
 
         self.create_keyboard_shortcuts()
 
+        self.auto_segmentation_running = False
         self.seg_button = NoFocusPushButton("Segmentation Auto", self)
         self.seg_button.setStyleSheet("background-color: green; color: white; padding: 5px; border-radius: 5px;")
         self.seg_button.clicked.connect(self.seg_action)
@@ -201,8 +202,8 @@ class SideMenuWidget(QDockWidget):
 
         current_time = self.vlc_widget.get_current_time()
         frame = self.time_manager.m_to_frame(current_time)
-        left_enabled = not self.display.is_first_shot(self.get_current_button_data()["button"])
-        right_enabled = not self.display.is_last_shot(self.get_current_button_data()["button"])
+        left_enabled = not self.display.is_first_shot(self.get_current_button_data()["button"]) and not self.auto_segmentation_running
+        right_enabled = not self.display.is_last_shot(self.get_current_button_data()["button"]) and not self.auto_segmentation_running
         self.merge_left_button.setEnabled(left_enabled)
         self.merge_left_button.setStyleSheet("background-color: tomato; color: white; padding: 5px; border-radius: 5px;" if left_enabled else "background-color: gray; color: lightgray; padding: 5px; border-radius: 5px;")
         self.merge_right_button.setEnabled(right_enabled)
@@ -716,6 +717,7 @@ class SideMenuWidget(QDockWidget):
         video_path = self.vlc_widget.path_of_media
 
         color_movie=self.is_movie_color(video_path)
+        self.auto_segmentation_running = True
 
         self.segmentation_thread = SegmentationThread(video_path,color_movie)
         
@@ -733,6 +735,7 @@ class SideMenuWidget(QDockWidget):
         #self.add_button.setVisible(True)
         #fichier = open("data.txt","w")
 
+        self.auto_segmentation_running = False
         self.toggle_buttons(True)
 
         self.seg_button.setStyleSheet("background-color: green; color: white; padding: 5px; border-radius: 5px;")
