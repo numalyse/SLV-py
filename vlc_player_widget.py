@@ -350,6 +350,7 @@ class VLCPlayerWidget(QWidget):
             self.timer.start()  
 
             self.update_video_name()
+            self.video_name_label.setVisible(not self.full_screen)
 
             # si on est dans un lecteur sync mode, on veut que le slider soit à jour et que la vidéo soit prête à être jouée, 
             # mais on ne veut pas que la vidéo commence à jouer automatiquement
@@ -439,24 +440,21 @@ class VLCPlayerWidget(QWidget):
 
 
     def restart_video(self, auto_play=True):
-        """ Remet la vidéo à 00:00:00. Si auto_play est à False, la vidéo restera en pause après le chargement. Sinon la lecture reprendra automatiquement. """
-        self.player.stop() if not auto_play else None # vide la frame si on veut que la vidéo recommence pas 
-        
-        self.media = None
-        if self.ac : 
+        if auto_play: 
+            self.player.set_media(None)
+            self.player.set_media(self.media)
+            self.player.set_time(0)
+            self.player.play()
+        else :
+            self.player.stop()
+            self.player.set_media(None)
+            self.player.set_media(self.media)
+            self.player.set_time(0)
+            self.player.play()
             self.play_pause_button.setText("⏯️ Lire")
-        self.timer.stop()
-        self.progress_slider.setValue(0)
-        self.progress_slider.setEnabled(False)
-        self.time_label.setText("00:00:00 / 00:00:00")
-        self.time_label.setStyleSheet("color: white;")
-        self.estimated_time = None
+            self.player.set_pause(1)
 
-        self.load_video(self.path_of_media,False)
-        self.video_name_label.setVisible(not self.full_screen)
-        
-        self.pause_video() if not auto_play else self.play_video() # play ou pause apres le chargment
-        
+        self.estimated_time = None 
 
     def capture_screenshot(self, name="",post_traitement=False,format_capture=False,gamma=1.4):
         """ Capture un screenshot de la vidéo. """

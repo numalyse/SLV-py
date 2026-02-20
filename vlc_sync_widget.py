@@ -174,6 +174,8 @@ class SyncWidget(QWidget):
     def full_screen_action(self):
         for i in self.player_widgets:
             i.display(self.full_screen)
+            i.full_screen = not self.full_screen 
+            
         self.main_window.display(self.full_screen)
         self.play_pause_button.setVisible(self.full_screen)
         self.stop_button.setVisible(self.full_screen)
@@ -195,8 +197,10 @@ class SyncWidget(QWidget):
             for i in self.player_widgets:
                 if i != player:
                     i.setVisible(False)
+                    i.full_screen = False
                 else:
                     i.display(False)
+                    i.full_screen = True
                     i.full_screen_button.setVisible(True)
 
             self.full_screen_one = True
@@ -208,6 +212,7 @@ class SyncWidget(QWidget):
             for i in self.player_widgets:
                 i.setVisible(True)
                 i.display(True)
+                i.full_screen = False
                 
             self.full_screen_one = False
             self.full_screen_player = None
