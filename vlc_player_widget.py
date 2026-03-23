@@ -1,5 +1,7 @@
 import sys
 import os
+import subprocess
+import stat
 from pathlib import Path
 from PIL import Image
 import cv2
@@ -606,19 +608,35 @@ class VLCPlayerWidget(QWidget):
         else:
             self.start_recording()
 
+    def get_ffmpeg(self):
+        if hasattr(sys, "_MEIPASS"):
+            return os.path.join(sys._MEIPASS, "ffmpeg")
+            
+        return "/usr/bin/ffmpeg"
+
     #extraction vidéo temps en secondes
     def extract_segment_with_ffmpeg(self,input_file, start_time, duration, output_file):
+
+        ffmpeg_path = self.get_ffmpeg()
+        os.chmod(ffmpeg_path, os.stat(ffmpeg_path).st_mode | stat.S_IEXEC)
+
         try:
             # Utilisation de la librairie ffmpeg-python
-            (
-                ffmpeg
-                .input(input_file, ss=start_time)  # Spécifie le fichier d'entrée et le temps de début
-                .output(output_file, t=duration)  # Définit la durée 
-                .run(overwrite_output=True, quiet=True)  # Exécute la commande sans afficher la sortie
-            )
+            # (
+            #     ffmpeg
+            #     .input(input_file, ss=start_time)  # Spécifie le fichier d'entrée et le temps de début
+            #     .output(output_file, t=duration)  # Définit la durée 
+            #     .run(overwrite_output=True, quiet=True)  # Exécute la commande sans afficher la sortie
+            # )
+            print("FFMPEG PATH:", ffmpeg_path)
+            print("EXISTS:", os.path.exists(ffmpeg_path))
+            print("IS FILE:", os.path.isfile(ffmpeg_path))
+            print("CAN EXECUTE:", os.access(ffmpeg_path, os.X_OK))
+            cmd = [ffmpeg_path, "-ss", str(start_time), "-i", input_file, "-t", str(duration), "-c:v", "libx264", "-c:a", "aac", output_file]
+            subprocess.run(cmd, check=True, capture_output=True, text=True)
             print(f"Extrait enregistré dans {output_file}")
-        except ffmpeg.Error as e:
-            print(f"Erreur lors de l'extraction : {e.stderr.decode()}")
+        except subprocess.CalledProcessError as e:
+            print(f"Erreur lors de l'extraction : {e.stderr}")
 
 
     def start_recording(self):

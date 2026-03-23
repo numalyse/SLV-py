@@ -78,4 +78,4 @@ build/
 .vscode/
 dist/
 __pycache__/
-
+temp_env/

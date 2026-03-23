@@ -128,7 +128,7 @@ class SideMenuWidgetDisplay(QDockWidget):
         # Réajoute un stretch à la fin
         self.layout.addStretch()
 
-    def info_data_form(self, name="", text="", modifiable=True):
+    def info_data_form(self, name="", text="", modifiable=True, button=None):
         background_frame = QFrame(self)
         background_frame.setAutoFillBackground(True)
 
@@ -144,6 +144,9 @@ class SideMenuWidgetDisplay(QDockWidget):
         name_input.setReadOnly(not modifiable)
         name_input.setAlignment(Qt.AlignRight)
         
+        if button:
+            name_input.textChanged.connect(lambda:button.setText(name_input.text()))
+
         if modifiable:
             name_input.SignalFocusIn.connect(lambda: self.vlc_widget.pause_video())
             name_input.SignalFocusOut.connect(lambda: self.vlc_widget.play_video())
@@ -199,7 +202,8 @@ class SideMenuWidgetDisplay(QDockWidget):
         # -------------- FIN A ENLEVER
 
         frame_layout.addWidget(self.info_data_form(name="Numéro du plan", text=numbering_name, modifiable=False))
-        frame_layout.addWidget(self.info_data_form(name="Nom du plan", text=name, modifiable=True))
+        form_name_widget = self.info_data_form(name="Nom du plan", text=name, modifiable=True, button=button)
+        frame_layout.addWidget(form_name_widget)
 
         frame_layout.addWidget(self.info_data_form(name="Début du plan", text=self.time_manager.m_to_hmsf(time), modifiable=False))
         frame_layout.addWidget(self.info_data_form(name="Fin du plan", text=self.time_manager.m_to_hmsf(end), modifiable=False))

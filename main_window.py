@@ -333,8 +333,8 @@ class VLCMainWindow(QMainWindow):
                 self.project.save_project()
         else:
             self.project.write_json()
-        self.save_state=False
-        self.save_button.setEnabled(False)
+        # self.save_state=False
+        # self.save_button.setEnabled(False)
 
     def open_project_action(self):
         if(self.auto_save()):

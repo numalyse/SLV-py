@@ -5,6 +5,8 @@ import os
 from pathlib import Path
 import datetime
 import logging
+import ffmpeg
+print("FORCE IMPORT:", ffmpeg, ffmpeg.__file__)
 
 if sys.platform == "darwin":  # "darwin" = macOS
     os.environ["PATH"] += os.pathsep + "/opt/homebrew/bin"

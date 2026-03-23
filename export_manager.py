@@ -2,7 +2,7 @@ from PySide6.QtWidgets import QWidget, QVBoxLayout, QPushButton, QFileDialog, QR
 from PySide6.QtCore import Qt, QTimer
 
 import json
-import os
+import os, sys
 import cv2
 import numpy as np
 import tempfile
@@ -54,6 +54,13 @@ import logging
 import shutil, time
 
 ffmpeg_path = imageio_ffmpeg.get_ffmpeg_exe()
+if hasattr(sys, "_MEIPASS"):
+    base_path = sys._MEIPASS
+    ffmpeg_path = os.path.join(base_path, "ffmpeg_bin")
+    imageio_ffmpeg.get_ffmpeg_exe = lambda: ffmpeg_path
+else:
+    ffmpeg_path = imageio_ffmpeg.get_ffmpeg_exe()
+
 os.environ["IMAGEIO_FFMPEG_EXE"] = ffmpeg_path
 
 class ExportManager(QWidget):

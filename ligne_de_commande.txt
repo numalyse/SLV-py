@@ -8,5 +8,7 @@ WINDOWS VERSION :
 pyinstaller main.py --name "SLV (Windows) (dev version)" --onefile --windowed --icon=icon/numalyse_logo.ico --add-data ".\logo\numalyse_logo.png;logo --collect-all moviepy --collect-all proglog --hidden-import=cv2 --hidden-import=cv2.data --hidden-import=skimage --noconfirm
 
 
+LINUX VERSION :
+python3 -m PyInstaller main.py --name "SLV_Linux_dev_version" --onefile --windowed --icon=icon/numalyse_logo.ico --collect-all moviepy --collect-all proglog --collect-all imageio --hidden-import=cv2 --hidden-import=cv2.data --hidden-import=skimage --noconfirm --add-binary "/usr/bin/ffmpeg:." --add-binary "/usr/lib/x86_64-linux-gnu/libvlc.so.5:." --add-binary "/usr/lib/x86_64-linux-gnu/libvlccore.so.9:." --add-data "/usr/lib/x86_64-linux-gnu/vlc:vlc"
 
 py -m PyInstaller main.py --name "SLV (Windows) (dev version)" --onefile --windowed --icon=icon/numalyse_logo.ico --add-data ".\icon\numalyse_logo.png;icon" --add-binary "ffmpeg.exe;." --collect-all moviepy --collect-all proglog --collect-all imageio --hidden-import=cv2 --hidden-import=cv2.data --hidden-import=skimage --noconfirm
